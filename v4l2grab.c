@@ -1,6 +1,6 @@
 /***************************************************************************
  *   v4l2grab Version 0.1                                                  *
- *   Copyright (C) 2009 by Tobias MĆ¼ller                                   *
+ *   Copyright (C) 2009 by Tobias Müller                                   *
  *   Tobias_Mueller@twam.info                                              *
  *                                                                         *
  *   based on V4L2 Specification, Appendix B: Video Capture Example        *
