@@ -354,6 +354,7 @@ void exit_func(void) // Function to be passed to atexit().
 	eglDestroySurface(p_state->display, p_state->surface);
 	eglDestroyContext(p_state->display, p_state->context);
 	eglTerminate(p_state->display);
+	free(userData);
 }
 
 // Create a shader object, load the shader source, and
@@ -987,6 +988,8 @@ void* playThread(void *arg)
 	
 	if (useGL)
 		exit_func();
+	else
+		free(userData);
 
 	retval_play = 0;
 	pthread_exit((void*)&retval_play);
@@ -1909,6 +1912,8 @@ static gboolean draw_cb(GtkWidget *widget, cairo_t *cr, gpointer data)
 static void button1_clicked(GtkWidget *button, gpointer data)
 {
 	gtk_widget_set_sensitive(glcheckbox, FALSE);
+	gtk_widget_set_sensitive(button1, FALSE);
+	gtk_widget_set_sensitive(button2, TRUE);
 	running = 1;
 	create_threads();
 }
@@ -1917,6 +1922,8 @@ static void button2_clicked(GtkWidget *button, gpointer data)
 {
 	running = 0;
 	gtk_widget_set_sensitive(glcheckbox, TRUE);
+	gtk_widget_set_sensitive(button1, TRUE);
+	gtk_widget_set_sensitive(button2, FALSE);
 }
 
 static void usegl_toggled(GtkWidget *togglebutton, gpointer data)
@@ -1988,6 +1995,7 @@ int main(int argc, char **argv)
     button2 = gtk_button_new_with_label("Stop");
     g_signal_connect(GTK_BUTTON(button2), "clicked", G_CALLBACK(button2_clicked), NULL);
     gtk_container_add(GTK_CONTAINER(buttonbox1), button2);
+	gtk_widget_set_sensitive(button2, FALSE);
 
 // horizontal box
     hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 5);
