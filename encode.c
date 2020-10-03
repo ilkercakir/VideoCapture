@@ -34,6 +34,7 @@
 #include <libavcodec/avcodec.h>
 #include <libavutil/opt.h>
 #include <libavutil/imgutils.h>
+#include <libavformat/avformat.h>
 
 #include "encode.h"
 
@@ -46,9 +47,13 @@ int init_encoder(videoencoder *v, char *filename, int bitrate, int width, int he
 	for(i=0;i<4;i++)
 		v->endcode[i] = code[i];
 	strcpy(v->filename, filename);
+
+	av_register_all();
+	avcodec_register_all();
  
 	/* find the video encoder */
 	if (!(v->codec = avcodec_find_encoder(AV_CODEC_ID_H264)))
+	//if (!(v->codec = avcodec_find_encoder(AV_CODEC_ID_MPEG2VIDEO)))
 	{
 		printf("Codec not found\n");
 		return -1;
@@ -74,7 +79,7 @@ int init_encoder(videoencoder *v, char *filename, int bitrate, int width, int he
 	/* frames per second */
 	v->c->time_base = (AVRational){1, 25};
 	v->c->framerate = (AVRational){25, 1};
- 
+
 	/* emit one intra frame every ten frames
 	* check frame pict_type before passing frame
 	* to encoder, if frame->pict_type is AV_PICTURE_TYPE_I
@@ -84,17 +89,17 @@ int init_encoder(videoencoder *v, char *filename, int bitrate, int width, int he
 	v->c->gop_size = 10;
 	v->c->max_b_frames = 1;
 	v->c->pix_fmt = AV_PIX_FMT_YUV420P;
- 
-	if (v->codec->id == AV_CODEC_ID_H264)
-		av_opt_set(v->c->priv_data, "preset", "slow", 0);
- 
+
+	//if (v->codec->id == AV_CODEC_ID_H264)
+	//	av_opt_set(v->c->priv_data, "preset", "slow", 0);
+
 	/* open it */
 	if ((ret = avcodec_open2(v->c, v->codec, NULL)) < 0)
 	{
 		printf("Could not open codec, %s\n", av_err2str(ret));
 		return -4;
 	}
- 
+
 	if (!(v->f = fopen(v->filename, "wb")))
 	{
 		printf("Could not open %s\n", v->filename);
@@ -106,26 +111,45 @@ int init_encoder(videoencoder *v, char *filename, int bitrate, int width, int he
 		printf("Could not allocate video frame\n");
 		return -6;
 	}
+	v->frame->pict_type = 0;
+
 	v->frame->format = v->c->pix_fmt;
 	v->frame->width = v->c->width;
 	v->frame->height = v->c->height;
 
-	if ((ret = av_frame_get_buffer(v->frame, 32)) < 0)
+	if ((ret = av_frame_get_buffer(v->frame, 1)) < 0)
 	{
 		printf("Could not allocate the video frame data\n");
 		return -7;
 	}
+//printf("linesizes %d %d %d\n", v->frame->linesize[0], v->frame->linesize[1], v->frame->linesize[2]);
+
+	int picsize = v->frame->width * v->frame->height;
+	v->uoffset = picsize;
+	v->voffset = v->uoffset + picsize / 4;
 
 	return ret;
 }
- 
-int encode(videoencoder *v)
+
+int encode(videoencoder *v, unsigned char *yuv420, long long int pts)
 {
 	int ret;
 
 	/* send the frame to the encoder */
 	if (v->frame)
-		printf("Send frame %3"PRId64"\n", v->frame->pts);
+	{
+//printf("Send frame %3"PRId64"\n", pts);
+		if ((ret = av_frame_make_writable(v->frame))<0)
+		{
+			printf("av_frame_make_writable error\n");
+			return -1;
+		}
+		v->frame->data[0] = yuv420;
+		v->frame->data[1] = yuv420 + v->uoffset;
+		v->frame->data[2] = yuv420 + v->voffset;
+
+		v->frame->pts = pts;
+	}
 
 	if ((ret = avcodec_send_frame(v->c, v->frame)) < 0)
 	{
@@ -144,72 +168,24 @@ int encode(videoencoder *v)
 			return ret;
 		}
 
-		printf("Write packet %3"PRId64" (size=%5d)\n", v->pkt->pts, v->pkt->size);
+//printf("Write packet %3"PRId64" (size=%5d)\n", v->pkt->pts, v->pkt->size);
 		fwrite(v->pkt->data, 1, v->pkt->size, v->f);
 		av_packet_unref(v->pkt);
 	}
 
 	return ret;
 }
- 
+
 void close_encoder(videoencoder *v)
 {
 	/* flush the encoder */
-	encode(v);
+	av_frame_free(&(v->frame));
+	encode(v, NULL, 0);
 
 	/* add sequence end code to have a real MPEG file */
 	fwrite(v->endcode, 1, sizeof(v->endcode), v->f);
 	fclose(v->f);
 
 	avcodec_free_context(&(v->c));
-	av_frame_free(&(v->frame));
 	av_packet_free(&(v->pkt));
 }
- 
- 
-thread
- 
-  /* encode 1 second of video */
-  for (i = 0; i < 25; i++) {
-  fflush(stdout);
- 
-  /* make sure the frame data is writable */
-  ret = av_frame_make_writable(frame);
-  if (ret < 0)
-  exit(1);
- 
-  /* prepare a dummy image */
-  /* Y */
-  for (y = 0; y < c->height; y++) {
-  for (x = 0; x < c->width; x++) {
-  frame->data[0][y * frame->linesize[0] + x] = x + y + i * 3;
-  }
-  }
- 
-  /* Cb and Cr */
-  for (y = 0; y < c->height/2; y++) {
-  for (x = 0; x < c->width/2; x++) {
-  frame->data[1][y * frame->linesize[1] + x] = 128 + y + i * 2;
-  frame->data[2][y * frame->linesize[2] + x] = 64 + x + i * 5;
-  }
-  }
- 
-  frame->pts = i;
- 
-  /* encode the image */
-  encode(c, frame, pkt, f);
-  }
- 
-  /* flush the encoder */
-  encode(c, NULL, pkt, f);
- 
-  /* add sequence end code to have a real MPEG file */
-  fwrite(endcode, 1, sizeof(endcode), f);
-  fclose(f);
- 
-  avcodec_free_context(&c);
-  av_frame_free(&frame);
-  av_packet_free(&pkt);
- 
-  return 0;
- }

@@ -21,17 +21,12 @@
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
-<<<<<<< HEAD
 /***************************************************************************
  *   Modified 2017, İlker Çakır                                            *
  *   Added GPU support using open GLES 2.0                                 *
  ***************************************************************************/
 
 // compile with gcc -Wall -c "%f" -DUSE_OPENGL -DUSE_EGL -DIS_RPI -DSTANDALONE -D__STDC_CONSTANT_MACROS -D__STDC_LIMIT_MACROS -DTARGET_POSIX -D_LINUX -fPIC -DPIC -D_REENTRANT -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64 -U_FORTIFY_SOURCE -g -ftree-vectorize -pipe -DHAVE_LIBBCM_HOST -DUSE_EXTERNAL_LIBBCM_HOST -DUSE_VCHIQ_ARM -mcpu=cortex-a53 -mfloat-abi=hard -mfpu=neon-fp-armv8 -mneon-for-64bits -I/opt/vc/include/ -I/opt/vc/include/interface/vcos/pthreads -I/opt/vc/include/interface/vmcs_host/linux -Wno-deprecated-declarations -DIO_READ -DIO_MMAP -DIO_USERPTR $(pkg-config --cflags gtk+-3.0)
-=======
-
-// compile with gcc -Wall -c "%f" -DUSE_OPENGL -DUSE_EGL -DIS_RPI -DSTANDALONE -D__STDC_CONSTANT_MACROS -D__STDC_LIMIT_MACROS -DTARGET_POSIX -D_LINUX -fPIC -DPIC -D_REENTRANT -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64 -U_FORTIFY_SOURCE -g -ftree-vectorize -pipe -DHAVE_LIBBCM_HOST -DUSE_EXTERNAL_LIBBCM_HOST -DUSE_VCHIQ_ARM -I/opt/vc/include/ -I/opt/vc/include/interface/vcos/pthreads -I/opt/vc/include/interface/vmcs_host/linux -Wno-deprecated-declarations -DIO_READ -DIO_MMAP -DIO_USERPTR $(pkg-config --cflags gtk+-3.0)
->>>>>>> a8c38c159f0d20dadd5bf621d5851715fb5c8575
 // link with gcc -Wall -o "%e" "%f" -D_POSIX_C_SOURCE=199309L -DIO_READ -DIO_MMAP -DIO_USERPTR $(pkg-config --cflags gtk+-3.0) -Wl,--whole-archive -I/opt/vc/include -L/opt/vc/lib/ -lGLESv2 -lEGL -lbcm_host -lvchiq_arm -lpthread -lrt -ldl -lm -Wl,--no-whole-archive -rdynamic $(pkg-config --libs gtk+-3.0) $(pkg-config --cflags gtk+-3.0) $(pkg-config --libs gtk+-3.0) -ljpeg -lm
 
 #define _GNU_SOURCE
@@ -70,26 +65,16 @@
 #include <GLES2/gl2ext.h>
 
 // global settings
-<<<<<<< HEAD
-unsigned int width = 720; //640;
-unsigned int height = 576; //480;
-//static unsigned char jpegQuality = 70;
-//static char* jpegFilename = NULL;
+static unsigned int width = 720; //640;
+static unsigned int height = 576; //480;
+static unsigned char jpegQuality = 70;
+static char* jpegFilename = NULL;
 static char* deviceName = "/dev/video0";
 
 int playerwidth = 720; //640;
 int playerheight = 576; //480;
 
 pthread_t tid[3];
-=======
-static unsigned int width = 640;
-static unsigned int height = 480;
-static unsigned char jpegQuality = 70;
-static char* jpegFilename = NULL;
-static char* deviceName = "/dev/video0";
-
-pthread_t tid[2];
->>>>>>> a8c38c159f0d20dadd5bf621d5851715fb5c8575
 int retval_wait, retval_capture, retval_play;
 cpu_set_t cpu[4];
 
@@ -110,33 +95,26 @@ int useGL = 1;
 
 typedef struct
 {
-    // Handle to a program object
-   GLuint programObject;
+	// Handle to a program object
+	GLuint programObject;
 
-   // Attribute locations
-   GLint  positionLoc;
-   GLint  texCoordLoc;
+	// Attribute locations
+	GLint  positionLoc;
+	GLint  texCoordLoc;
 
-   // Sampler location
-   GLint samplerLoc;
+	// Sampler location
+	GLint samplerLoc;
    
-   // Image size vector location vec2(WIDTH, HEIGHT)
-   GLint sizeLoc;
+	// Image size vector location vec2(WIDTH, HEIGHT)
+	GLint sizeLoc;
 
-   // Input texture
-   GLuint tex;
+	// Input texture
+	GLuint tex;
 
-   // YUV->RGB conversion matrix
-   GLuint cmatrixLoc;
-
-	// Frame & Render buffers
-	GLuint canvasFrameBuffer;
-	GLuint canvasRenderBuffer;
+	// YUV->RGB conversion matrix
+	GLuint cmatrixLoc;
 
 	unsigned char *outrgb;
-
-	// Output texture
-	GLuint outtex;
 } UserData;
 
 typedef struct
@@ -185,12 +163,7 @@ void checkNoGLES2Error()
 		printf("GLES20 error: %d", error);
 	}
 }
-<<<<<<< HEAD
-
-/*
-=======
   
->>>>>>> a8c38c159f0d20dadd5bf621d5851715fb5c8575
 void init_ogl(CUBE_STATE_T *state)
 {
     int32_t success = 0;
@@ -242,11 +215,7 @@ void init_ogl(CUBE_STATE_T *state)
     assert(p_state->context!=EGL_NO_CONTEXT);
 
     // create an EGL window surface
-<<<<<<< HEAD
-    success = graphics_get_display_size(0 / * LCD * /, &p_state->screen_width, &p_state->screen_height);
-=======
     success = graphics_get_display_size(0 /* LCD */, &p_state->screen_width, &p_state->screen_height);
->>>>>>> a8c38c159f0d20dadd5bf621d5851715fb5c8575
     assert( success >= 0 );
 
     printf("Screen size = %d * %d\n", p_state->screen_width, p_state->screen_height);
@@ -266,24 +235,14 @@ void init_ogl(CUBE_STATE_T *state)
     src_rect.width = p_state->screen_width << 16;
     src_rect.height = p_state->screen_height << 16;
 
-<<<<<<< HEAD
-    dispman_display = vc_dispmanx_display_open( 0 /  * LCD * /);
-=======
     dispman_display = vc_dispmanx_display_open( 0 /* LCD */);
->>>>>>> a8c38c159f0d20dadd5bf621d5851715fb5c8575
     dispman_update = vc_dispmanx_update_start( 0 );
 
     dispman_element = 
 	vc_dispmanx_element_add(dispman_update, dispman_display,
-<<<<<<< HEAD
-				0/ *layer* /, &dst_rect, 0/ *src* /,
-				&src_rect, DISPMANX_PROTECTION_NONE, 
-				0 / *alpha* /, 0/ *clamp* /, 0/ *transform* /);
-=======
 				0/*layer*/, &dst_rect, 0/*src*/,
 				&src_rect, DISPMANX_PROTECTION_NONE, 
 				0 /*alpha*/, 0/*clamp*/, 0/*transform*/);
->>>>>>> a8c38c159f0d20dadd5bf621d5851715fb5c8575
 
     nativewindow.element = dispman_element;
     nativewindow.width = p_state->screen_width;
@@ -297,18 +256,12 @@ void init_ogl(CUBE_STATE_T *state)
     result = eglMakeCurrent(p_state->display, p_state->surface, p_state->surface, p_state->context);
     assert(EGL_FALSE != result);
 }
-<<<<<<< HEAD
-*/
-=======
->>>>>>> a8c38c159f0d20dadd5bf621d5851715fb5c8575
 
 void init_ogl2(CUBE_STATE_T *state)
 {
     EGLBoolean result;
     EGLint num_config;
 
-<<<<<<< HEAD
-=======
 /*
     static const EGLint attribute_list[] =
 	{
@@ -321,7 +274,6 @@ void init_ogl2(CUBE_STATE_T *state)
 	    EGL_NONE
 	};
 */
->>>>>>> a8c38c159f0d20dadd5bf621d5851715fb5c8575
     static const EGLint attribute_list[] =
 	{
 	    EGL_RED_SIZE, 8,
@@ -360,13 +312,8 @@ void init_ogl2(CUBE_STATE_T *state)
     assert(p_state->context!=EGL_NO_CONTEXT);
 
     // create an EGL window surface
-<<<<<<< HEAD
     p_state->screen_width = playerwidth; //width; //playerwidth;
     p_state->screen_height = playerheight; //height; //playerheight;
-=======
-    p_state->screen_width = width; //playerwidth
-    p_state->screen_height = height; //playerheight
->>>>>>> a8c38c159f0d20dadd5bf621d5851715fb5c8575
 
 /*
     state->surface = eglCreateWindowSurface( p_state->display, config, NULL, NULL);
@@ -389,14 +336,6 @@ void init_ogl2(CUBE_STATE_T *state)
 void exit_func(void) // Function to be passed to atexit().
 {
 	UserData *userData = p_state->user_data;
-
-/*
-// unbind frame buffer
-	glBindRenderbuffer(GL_RENDERBUFFER, 0);
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	glDeleteRenderbuffers(1, &(userData->canvasRenderBuffer));
-	glDeleteFramebuffers(1, &(userData->canvasFrameBuffer));
-*/
 
 	// Delete allocated objects
 	glDeleteProgram(userData->programObject);
@@ -617,27 +556,6 @@ int Init(CUBE_STATE_T *p_state)
    
    glUniform1i(userData->samplerLoc, 0);
 
-/*
-	// Create framebuffer
-	glGenFramebuffers(1, &(userData->canvasFrameBuffer));
-	glBindFramebuffer(GL_RENDERBUFFER, userData->canvasFrameBuffer);
-
-	// Attach renderbuffer
-	glGenRenderbuffers(1, &(userData->canvasRenderBuffer));
-	glBindRenderbuffer(GL_RENDERBUFFER, userData->canvasRenderBuffer);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA4, pCodecCtx->width, pCodecCtx->height);
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, userData->canvasRenderBuffer);
-
-	glGenTextures(1, &(userData->outtex));
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, userData->outtex);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, (GLfloat)GL_NEAREST);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, (GLfloat)GL_NEAREST);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, (GLfloat)GL_CLAMP_TO_EDGE);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, (GLfloat)GL_CLAMP_TO_EDGE);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,  pCodecCtx->width, pCodecCtx->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, userData->outtex, 0);
-*/
    glClearColor ( 0.0f, 0.0f, 0.0f, 1.0f );
    glClear(GL_COLOR_BUFFER_BIT);
    return GL_TRUE;
@@ -723,7 +641,6 @@ long get_next_time_microseconds()
     return(delta);
 }
 
-<<<<<<< HEAD
 enum playerstate
 {
 	IDLE = 0,
@@ -734,15 +651,6 @@ enum playerstate
 
 // Video
 enum playerstate playerstatus = IDLE;
-=======
-#define idle 0
-#define playing 1
-#define paused 2
-#define draining 3
-
-// Video
-int playerstatus = idle;
->>>>>>> a8c38c159f0d20dadd5bf621d5851715fb5c8575
 
 struct videoqueue
 {
@@ -752,11 +660,7 @@ struct videoqueue
 };
 struct videoqueue *vq = NULL;
 int vqLength;
-<<<<<<< HEAD
 int vqMaxLength = 10;
-=======
-int vqMaxLength = 20;
->>>>>>> a8c38c159f0d20dadd5bf621d5851715fb5c8575
 pthread_mutex_t vqmutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t vqlowcond = PTHREAD_COND_INITIALIZER;
 pthread_cond_t vqhighcond = PTHREAD_COND_INITIALIZER;
@@ -843,11 +747,7 @@ struct videoqueue* vq_remove(struct videoqueue **q)
 	pthread_mutex_lock(&vqmutex);
 	while((*q)==NULL) // queue empty
 	{
-<<<<<<< HEAD
 		if ((playerstatus==PLAYING) || (playerstatus==PAUSED))
-=======
-		if ((playerstatus==playing) || (playerstatus==paused))
->>>>>>> a8c38c159f0d20dadd5bf621d5851715fb5c8575
 		{
 			//printf("Video queue sleeping, underrun\n");
 			pthread_cond_wait(&vqlowcond, &vqmutex);
@@ -857,21 +757,12 @@ struct videoqueue* vq_remove(struct videoqueue **q)
 	}
 	switch (playerstatus)
 	{
-<<<<<<< HEAD
 		case PLAYING:
 		case PAUSED:
 			p = vq_remove_element(q);
 			vqLength--;
 			break;
 		case DRAINING:
-=======
-		case playing:
-		case paused:
-			p = vq_remove_element(q);
-			vqLength--;
-			break;
-		case draining:
->>>>>>> a8c38c159f0d20dadd5bf621d5851715fb5c8575
 			if (vqLength>0)
 			{
 				p = vq_remove_element(q);
@@ -1078,10 +969,6 @@ void* playThread(void *arg)
 	pthread_exit((void*)&retval_play);
 }
 
-<<<<<<< HEAD
-
-=======
->>>>>>> a8c38c159f0d20dadd5bf621d5851715fb5c8575
 #define CLEAR(x) memset (&(x), 0, sizeof (x))
 
 typedef enum {
@@ -1101,7 +988,7 @@ struct buffer {
         size_t                  length;
 };
 
-static io_method        io              = IO_METHOD_MMAP;
+static io_method        io              = IO_METHOD_USERPTR;
 static int              fd              = -1;
 struct buffer *         buffers         = NULL;
 static unsigned int     n_buffers       = 0;
@@ -1134,16 +1021,11 @@ static int xioctl(int fd, int request, void* argp)
   return r;
 }
 
-<<<<<<< HEAD
-// Write image to jpeg file.
-/*
-=======
 /**
   Write image to jpeg file.
 
   \param img image to write
 */
->>>>>>> a8c38c159f0d20dadd5bf621d5851715fb5c8575
 static void jpegWrite(unsigned char* img)
 {
   struct jpeg_compress_struct cinfo;
@@ -1191,10 +1073,6 @@ static void jpegWrite(unsigned char* img)
   // close output file
   fclose(outfile);
 }
-<<<<<<< HEAD
-*/
-=======
->>>>>>> a8c38c159f0d20dadd5bf621d5851715fb5c8575
 
 /**
   process image read
@@ -1769,15 +1647,9 @@ static void deviceOpen(void)
   }
 }
 
-<<<<<<< HEAD
-
-// print usage information
-/*
-=======
 /**
   print usage information
 */
->>>>>>> a8c38c159f0d20dadd5bf621d5851715fb5c8575
 static void usage(FILE* fp, int argc, char** argv)
 {
   fprintf (fp,
@@ -1811,10 +1683,6 @@ long_options [] = {
         { "height",     required_argument,      NULL,           'H' },
         { 0, 0, 0, 0 }
 };
-<<<<<<< HEAD
-*/
-=======
->>>>>>> a8c38c159f0d20dadd5bf621d5851715fb5c8575
 
 void* captureThread(void *arg)
 {
@@ -1934,11 +1802,7 @@ void* waitThread(void *arg)
 {
 	// Init Video Queue
 	vq_init(&vq, &vqmutex, &vqlowcond, &vqhighcond);
-<<<<<<< HEAD
 	playerstatus = PLAYING;
-=======
-	playerstatus = playing;
->>>>>>> a8c38c159f0d20dadd5bf621d5851715fb5c8575
 
 	int err;
 
@@ -1965,17 +1829,10 @@ void* waitThread(void *arg)
 		printf("pthread_join error, tid[1], %d\n", i);
 
 	pthread_mutex_lock(&vqmutex);
-<<<<<<< HEAD
 	playerstatus = DRAINING;
 	pthread_mutex_unlock(&vqmutex);
 	vq_drain(&vq);
 	playerstatus = IDLE;
-=======
-	playerstatus = draining;
-	pthread_mutex_unlock(&vqmutex);
-	vq_drain(&vq);
-	playerstatus = idle;
->>>>>>> a8c38c159f0d20dadd5bf621d5851715fb5c8575
 
 	if ((i=pthread_join(tid[2], NULL)))
 		printf("pthread_join error, tid[2], %d\n", i);
@@ -1996,11 +1853,7 @@ static gboolean delete_event(GtkWidget *widget, GdkEvent *event, gpointer data)
 {
 //g_print ("delete event occurred\n");
 	running = 0;
-<<<<<<< HEAD
 	while (playerstatus!=IDLE)
-=======
-	while (playerstatus!=idle)
->>>>>>> a8c38c159f0d20dadd5bf621d5851715fb5c8575
 	{
 		sleep(1);
 	}
@@ -2053,7 +1906,6 @@ static void usegl_toggled(GtkWidget *togglebutton, gpointer data)
 	//printf("toggle state %d\n", gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(dlyenable)));
 }
 
-<<<<<<< HEAD
 void setup_default_icon(char *filename)
 {
 	GdkPixbuf *pixbuf;
@@ -2077,10 +1929,6 @@ void setup_default_icon(char *filename)
 int main(int argc, char **argv)
 {
 	setup_default_icon("./v4l2.png");
-=======
-int main(int argc, char **argv)
-{
->>>>>>> a8c38c159f0d20dadd5bf621d5851715fb5c8575
 
      /* This is called in all GTK applications. Arguments are parsed
      * from the command line and are returned to the application. */
@@ -2120,11 +1968,7 @@ int main(int argc, char **argv)
 
 // drawing area
     dwgarea = gtk_drawing_area_new();
-<<<<<<< HEAD
     gtk_widget_set_size_request (dwgarea, playerwidth, playerheight);
-=======
-    gtk_widget_set_size_request (dwgarea, width, height);
->>>>>>> a8c38c159f0d20dadd5bf621d5851715fb5c8575
     //gtk_widget_set_size_request (dwgarea, 1280, 720);
     gtk_container_add(GTK_CONTAINER(imagebox), dwgarea);
 
@@ -2159,11 +2003,7 @@ int main(int argc, char **argv)
 	g_signal_connect(GTK_TOGGLE_BUTTON(glcheckbox), "toggled", G_CALLBACK(usegl_toggled), NULL);
 	gtk_container_add(GTK_CONTAINER(hbox), glcheckbox);
 
-<<<<<<< HEAD
 	initPixbuf(playerwidth, playerheight);
-=======
-	initPixbuf(width, height);
->>>>>>> a8c38c159f0d20dadd5bf621d5851715fb5c8575
 
 	gtk_widget_show_all(window);
 

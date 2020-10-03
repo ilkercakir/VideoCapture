@@ -23,18 +23,8 @@ long_line_behaviour=1
 long_line_column=72
 
 [files]
-current_page=9
-FILE_NAME_0=13548;C;0;EUTF-8;1;1;0;%2Fhome%2Fpi%2FDesktop%2FC%2FV4L2%2Fv4l2grab1.c;0;4
-FILE_NAME_1=0;GLSL;0;EUTF-8;1;1;0;%2Fhome%2Fpi%2FDesktop%2FC%2FV4L2%2Fshader.vert;0;4
-FILE_NAME_2=25;GLSL;0;EUTF-8;1;1;0;%2Fhome%2Fpi%2FDesktop%2FC%2FV4L2%2Fshader.frag;0;4
-FILE_NAME_3=26;C;0;EUTF-8;1;1;0;%2Fhome%2Fpi%2FDesktop%2FC%2FV4L2%2FYUYVYUV420gl.c;0;4
-FILE_NAME_4=0;C;0;EUTF-8;1;1;0;%2Fhome%2Fpi%2FDesktop%2FC%2FV4L2%2FYUYVYUV420gl.h;0;4
-FILE_NAME_5=4971;C;0;EUTF-8;1;1;0;%2Fhome%2Fpi%2FDesktop%2FC%2FV4L2%2Fv4l2.c;0;4
-FILE_NAME_6=723;C;0;EUTF-8;1;1;0;%2Fhome%2Fpi%2FDesktop%2FC%2FV4L2%2Fv4l2.h;0;4
-FILE_NAME_7=2289;C;0;EUTF-8;1;1;0;%2Fhome%2Fpi%2FDesktop%2FC%2FV4L2%2FVideoQueue.c;0;4
-FILE_NAME_8=517;C;0;EUTF-8;1;1;0;%2Fhome%2Fpi%2FDesktop%2FC%2FV4L2%2FVideoQueue.h;0;4
-FILE_NAME_9=1365;C;0;EUTF-8;1;1;0;%2Fhome%2Fpi%2FDesktop%2FC%2FV4L2%2Fencode.c;0;4
-FILE_NAME_10=199;C;0;EUTF-8;1;1;0;%2Fhome%2Fpi%2FDesktop%2FC%2FV4L2%2Fencode.h;0;4
+current_page=0
+FILE_NAME_0=4736;C;0;EUTF-8;1;1;0;%2Fhome%2Fpi%2FDesktop%2FC%2FV4L2%2Fv4l2grab.c;0;4
 
 [VTE]
 last_dir=/home/pi/Desktop/C/Cover.cairo.pi
@@ -44,6 +34,6 @@ CFT_00_LB=_Derle
 CFT_00_CM=gcc -Wall -c "%f" -DUSE_OPENGL -DUSE_EGL -DIS_RPI -DSTANDALONE -D__STDC_CONSTANT_MACROS -D__STDC_LIMIT_MACROS -DTARGET_POSIX -D_LINUX -fPIC -DPIC -D_REENTRANT -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64 -U_FORTIFY_SOURCE -g -ftree-vectorize -pipe -DHAVE_LIBBCM_HOST -DUSE_EXTERNAL_LIBBCM_HOST -DUSE_VCHIQ_ARM -mcpu=cortex-a53 -mfloat-abi=hard -mfpu=neon-fp-armv8 -mneon-for-64bits -I/opt/vc/include/ -I/opt/vc/include/interface/vcos/pthreads -I/opt/vc/include/interface/vmcs_host/linux -Wno-deprecated-declarations -DIO_USERPTR $(pkg-config --cflags gtk+-3.0)
 CFT_00_WD=
 CFT_01_LB=İn_şa Et
-CFT_01_CM=gcc -Wall -o "%e" "%f" YUYVYUV420gl.o v4l2.o VideoQueue.o -D_POSIX_C_SOURCE=199309L -DIO_USERPTR $(pkg-config --cflags gtk+-3.0) -Wl,--whole-archive -I/opt/vc/include -L/opt/vc/lib/ -lGLESv2 -lEGL -lbcm_host -lvchiq_arm -lpthread -lrt -ldl -lm -Wl,--no-whole-archive -rdynamic $(pkg-config --libs gtk+-3.0) $(pkg-config --cflags gtk+-3.0) $(pkg-config --libs gtk+-3.0) $(pkg-config --libs libavcodec libavformat libavutil libswscale) -ljpeg -lm
+CFT_01_CM=gcc -Wall -o "%e" "%f" -D_POSIX_C_SOURCE=199309L -DIO_USERPTR $(pkg-config --cflags gtk+-3.0) -Wl,--whole-archive -I/opt/vc/include -L/opt/vc/lib/ -lGLESv2 -lEGL -lbcm_host -lvchiq_arm -lpthread -lrt -ldl -lm -Wl,--no-whole-archive -rdynamic $(pkg-config --libs gtk+-3.0) $(pkg-config --cflags gtk+-3.0) $(pkg-config --libs gtk+-3.0) $(pkg-config --libs libavcodec libavformat libavutil libswscale) -ljpeg -lm
 CFT_01_WD=
 filetypes=C;

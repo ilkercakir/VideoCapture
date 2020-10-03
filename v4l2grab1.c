@@ -56,6 +56,8 @@
 
 #include "YUYVYUV420gl.h"
 #include "v4l2.h"
+#include "encode.h"
+#include "VideoQueue.h"
 
 // global settings
 int playerwidth = 720;
@@ -441,17 +443,25 @@ void* encodeThread(void *arg)
 	queues *q = (queues *)arg;
 	vqstatus *vqe = &(q->vqencode);
 	struct videoqueue *p;
+	videoencoder enc;
+	long long int pts = 0;
+
+	init_encoder(&enc, "/media/pi/Ilker/v4l2grab1.mp4", 400000, width, height);
 
 	while (1)
 	{
 		if ((p = vq_remove(vqe)) == NULL)
 			break;
-			
-printf("encode\n");
+
+//printf("encode\n");
+		encode(&enc, p->yuyv, ++pts);
 
 		free(p->yuyv);
 		free(p);
 	}
+
+	close_encoder(&enc);
+
 	retval_encode = 0;
 	pthread_exit((void*)&retval_encode);
 }
@@ -599,9 +609,6 @@ void setup_default_icon(char *filename)
 int main(int argc, char **argv)
 {
 	setup_default_icon("./v4l2.png");
-
-	
-
 
      /* This is called in all GTK applications. Arguments are parsed
      * from the command line and are returned to the application. */
