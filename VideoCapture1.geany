@@ -1,0 +1,49 @@
+[file_prefs]
+final_new_line=true
+ensure_convert_new_lines=false
+strip_trailing_spaces=false
+replace_tabs=false
+
+[indentation]
+indent_width=4
+indent_type=1
+indent_hard_tab_width=8
+detect_indent=false
+detect_indent_width=false
+indent_mode=2
+
+[project]
+name=VideoCapture
+base_path=/home/pi/Desktop/C/V4L2
+description=
+file_patterns=
+
+[long line marker]
+long_line_behaviour=1
+long_line_column=72
+
+[files]
+current_page=0
+FILE_NAME_0=3757;C;0;EUTF-8;1;1;0;%2Fhome%2Fpi%2FDesktop%2FC%2FV4L2%2Fv4l2grab1.c;0;4
+FILE_NAME_1=1484;C;0;EUTF-8;1;1;0;%2Fhome%2Fpi%2FDesktop%2FC%2FV4L2%2Fencode.c;0;4
+FILE_NAME_2=458;C;0;EUTF-8;1;1;0;%2Fhome%2Fpi%2FDesktop%2FC%2FV4L2%2Fencode.h;0;4
+FILE_NAME_3=0;GLSL;0;EUTF-8;1;1;0;%2Fhome%2Fpi%2FDesktop%2FC%2FV4L2%2Fshader.vert;0;4
+FILE_NAME_4=912;GLSL;0;EUTF-8;1;1;0;%2Fhome%2Fpi%2FDesktop%2FC%2FV4L2%2Fshader.frag;0;4
+FILE_NAME_5=17835;C;0;EUTF-8;1;1;0;%2Fhome%2Fpi%2FDesktop%2FC%2FV4L2%2FYUYVYUV420gl.c;0;4
+FILE_NAME_6=737;C;0;EUTF-8;1;1;0;%2Fhome%2Fpi%2FDesktop%2FC%2FV4L2%2FYUYVYUV420gl.h;0;4
+FILE_NAME_7=15089;C;0;EUTF-8;1;1;0;%2Fhome%2Fpi%2FDesktop%2FC%2FV4L2%2Fv4l2.c;0;4
+FILE_NAME_8=1585;C;0;EUTF-8;1;1;0;%2Fhome%2Fpi%2FDesktop%2FC%2FV4L2%2Fv4l2.h;0;4
+FILE_NAME_9=2289;C;0;EUTF-8;1;1;0;%2Fhome%2Fpi%2FDesktop%2FC%2FV4L2%2FVideoQueue.c;0;4
+FILE_NAME_10=257;C;0;EUTF-8;1;1;0;%2Fhome%2Fpi%2FDesktop%2FC%2FV4L2%2FVideoQueue.h;0;4
+
+[VTE]
+last_dir=/home/pi/Desktop/C/Cover.cairo.pi
+
+[build-menu]
+CFT_00_LB=_Derle
+CFT_00_CM=gcc -Wall -c "%f" -DUSE_OPENGL -DUSE_EGL -DIS_RPI -DSTANDALONE -D__STDC_CONSTANT_MACROS -D__STDC_LIMIT_MACROS -DTARGET_POSIX -D_LINUX -fPIC -DPIC -D_REENTRANT -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64 -U_FORTIFY_SOURCE -g -ftree-vectorize -pipe -DHAVE_LIBBCM_HOST -DUSE_EXTERNAL_LIBBCM_HOST -DUSE_VCHIQ_ARM -mcpu=cortex-a53 -mfloat-abi=hard -mfpu=neon-fp-armv8 -mneon-for-64bits -I/opt/vc/include/ -I/opt/vc/include/interface/vcos/pthreads -I/opt/vc/include/interface/vmcs_host/linux -Wno-deprecated-declarations -DIO_USERPTR $(pkg-config --cflags gtk+-3.0)
+CFT_00_WD=
+CFT_01_LB=İn_şa Et
+CFT_01_CM=gcc -Wall -o "%e" "%f" YUYVYUV420gl.o v4l2.o VideoQueue.o encode.o -D_POSIX_C_SOURCE=199309L -DIO_USERPTR $(pkg-config --cflags gtk+-3.0) -Wl,--whole-archive -I/opt/vc/include -L/opt/vc/lib/ -lGLESv2 -lEGL -lbcm_host -lvchiq_arm -lpthread -lrt -ldl -lm -Wl,--no-whole-archive -rdynamic $(pkg-config --libs gtk+-3.0) $(pkg-config --cflags gtk+-3.0) $(pkg-config --libs gtk+-3.0) $(pkg-config --libs libavcodec libavformat libavutil libswscale) -ljpeg -lm
+CFT_01_WD=
+filetypes=C;
