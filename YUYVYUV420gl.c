@@ -106,14 +106,14 @@ void init_ogl(CUBE_STATE_T *state)
 
 void init_ogl2(CUBE_STATE_T *p_state, int playerwidth, int playerheight)
 {
-    EGLBoolean result;
-    EGLint num_config;
+	EGLBoolean result;
+	EGLint num_config;
 
-GLfloat lvVertices[] = { -1.0f,  1.0f, 0.0f, // Position 0
-                        -1.0f, -1.0f, 0.0f, // Position 1
-                         1.0f, -1.0f, 0.0f, // Position 2
-                         1.0f,  1.0f, 0.0f  // Position 3
-                      };
+	GLfloat lvVertices[] = { -1.0f,  1.0f, 0.0f, // Position 0
+							 -1.0f, -1.0f, 0.0f, // Position 1
+							  1.0f, -1.0f, 0.0f, // Position 2
+							  1.0f,  1.0f, 0.0f  // Position 3
+							};
 
 
 /*// Upside down with GTK
@@ -123,13 +123,13 @@ GLfloat tVertices[] = {  0.0f,  0.0f,        // TexCoord 0
                          1.0f,  0.0f         // TexCoord 3
                       };
 */
-GLfloat ltVertices[] = {  0.0f,  1.0f,        // TexCoord 0 
-                         0.0f,  0.0f,        // TexCoord 1
-                         1.0f,  0.0f,        // TexCoord 2
-                         1.0f,  1.0f         // TexCoord 3
-                      };
+	GLfloat ltVertices[] = { 0.0f,  1.0f,        // TexCoord 0 
+							 0.0f,  0.0f,        // TexCoord 1
+							 1.0f,  0.0f,        // TexCoord 2
+							 1.0f,  1.0f         // TexCoord 3
+							};
                       
-GLushort lindices[] = { 0, 1, 2, 0, 2, 3 };
+	GLushort lindices[] = { 0, 1, 2, 0, 2, 3 };
 
 	int i;
 	for(i=0;i<12;i++)
@@ -143,61 +143,61 @@ GLushort lindices[] = { 0, 1, 2, 0, 2, 3 };
 
     static const EGLint attribute_list[] =
 	{
-	    EGL_RED_SIZE, 8,
-	    EGL_GREEN_SIZE, 8,
-	    EGL_BLUE_SIZE, 8,
-	    EGL_ALPHA_SIZE, 8,
-	    EGL_SURFACE_TYPE, EGL_PBUFFER_BIT,
-	    EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
-	    EGL_NONE
+		EGL_RED_SIZE, 8,
+		EGL_GREEN_SIZE, 8,
+		EGL_BLUE_SIZE, 8,
+		EGL_ALPHA_SIZE, 8,
+		EGL_SURFACE_TYPE, EGL_PBUFFER_BIT,
+		EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
+		EGL_NONE
 	};
 
-    static const EGLint context_attributes[] =
+	static const EGLint context_attributes[] =
 	{
-	    EGL_CONTEXT_CLIENT_VERSION, 2,
-	    EGL_NONE
+		EGL_CONTEXT_CLIENT_VERSION, 2,
+		EGL_NONE
 	};
 
-    EGLConfig config;
+	EGLConfig config;
 
-    // get an EGL display connection
-    p_state->display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+	// get an EGL display connection
+	p_state->display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
 
-    // initialize the EGL display connection
-    result = eglInitialize(p_state->display, NULL, NULL);
+	// initialize the EGL display connection
+	result = eglInitialize(p_state->display, NULL, NULL);
 
-    // get an appropriate EGL frame buffer configuration
-    result = eglChooseConfig(p_state->display, attribute_list, &config, 1, &num_config);
-    assert(EGL_FALSE != result);
+	// get an appropriate EGL frame buffer configuration
+	result = eglChooseConfig(p_state->display, attribute_list, &config, 1, &num_config);
+	assert(EGL_FALSE != result);
 
-    // get an appropriate EGL frame buffer configuration
-    result = eglBindAPI(EGL_OPENGL_ES_API);
-    assert(EGL_FALSE != result);
+	// get an appropriate EGL frame buffer configuration
+	result = eglBindAPI(EGL_OPENGL_ES_API);
+	assert(EGL_FALSE != result);
 
-    // create an EGL rendering context
-    p_state->context = eglCreateContext(p_state->display, config, EGL_NO_CONTEXT, context_attributes);
-    assert(p_state->context!=EGL_NO_CONTEXT);
+	// create an EGL rendering context
+	p_state->context = eglCreateContext(p_state->display, config, EGL_NO_CONTEXT, context_attributes);
+	assert(p_state->context!=EGL_NO_CONTEXT);
 
-    // create an EGL window surface
-    p_state->screen_width = playerwidth;
-    p_state->screen_height = playerheight;
+	// create an EGL window surface
+	p_state->screen_width = playerwidth;
+	p_state->screen_height = playerheight;
 
 /*
-    state->surface = eglCreateWindowSurface( p_state->display, config, NULL, NULL);
-    assert(p_state->surface != EGL_NO_SURFACE);
+	state->surface = eglCreateWindowSurface( p_state->display, config, NULL, NULL);
+	assert(p_state->surface != EGL_NO_SURFACE);
 */
-    EGLint pbuffer_attributes[] = 
-    {
+	EGLint pbuffer_attributes[] = 
+	{
 		EGL_WIDTH, p_state->screen_width,
 		EGL_HEIGHT, p_state->screen_height,
 		EGL_NONE
-    };
-    p_state->surface = eglCreatePbufferSurface(p_state->display, config, pbuffer_attributes);
-    assert (p_state->surface != EGL_NO_SURFACE);
+	};
+	p_state->surface = eglCreatePbufferSurface(p_state->display, config, pbuffer_attributes);
+	assert (p_state->surface != EGL_NO_SURFACE);
 
-    // connect the context to the surface
-    result = eglMakeCurrent(p_state->display, p_state->surface, p_state->surface, p_state->context);
-    assert(EGL_FALSE != result);
+	// connect the context to the surface
+	result = eglMakeCurrent(p_state->display, p_state->surface, p_state->surface, p_state->context);
+	assert(EGL_FALSE != result);
 }
 
 void exit_func(CUBE_STATE_T *p_state) // Function to be passed to atexit().
@@ -229,93 +229,93 @@ void exit_func(CUBE_STATE_T *p_state) // Function to be passed to atexit().
 //
 GLuint LoadShader(GLenum type, const char *shaderSrc)
 {
-    GLuint shader;
-    GLint compiled;
-    // Create the shader object
-    shader = glCreateShader(type);
-    if(shader == 0)
-    return 0;
-    // Load the shader source
-    glShaderSource(shader, 1, &shaderSrc, NULL);
-    // Compile the shader
-    glCompileShader(shader);
-    // Check the compile status
-    glGetShaderiv(shader, GL_COMPILE_STATUS, &compiled);
-    if(!compiled)
-    {
-        GLint infoLen = 0;
-        glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &infoLen);
-        if(infoLen > 1)
-        {
-            char* infoLog = malloc(sizeof(char) * infoLen);
-            glGetShaderInfoLog(shader, infoLen, NULL, infoLog);
-            fprintf(stderr, "Error compiling shader:\n%s\n", infoLog);
-            free(infoLog);
-        }
-        glDeleteShader(shader);
-        return 0;
-    }
-    return shader;
+	GLuint shader;
+	GLint compiled;
+	// Create the shader object
+	shader = glCreateShader(type);
+	if(shader == 0)
+		return 0;
+	// Load the shader source
+	glShaderSource(shader, 1, &shaderSrc, NULL);
+	// Compile the shader
+	glCompileShader(shader);
+	// Check the compile status
+	glGetShaderiv(shader, GL_COMPILE_STATUS, &compiled);
+	if(!compiled)
+	{
+		GLint infoLen = 0;
+		glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &infoLen);
+		if(infoLen > 1)
+		{
+			char* infoLog = malloc(sizeof(char) * infoLen);
+			glGetShaderInfoLog(shader, infoLen, NULL, infoLog);
+			fprintf(stderr, "Error compiling shader:\n%s\n", infoLog);
+			free(infoLog);
+		}
+		glDeleteShader(shader);
+		return 0;
+	}
+	return shader;
 }
 
 GLuint LoadProgram ( const char *vertShaderSrc, const char *fragShaderSrc )
 {
-   GLuint vertexShader;
-   GLuint fragmentShader;
-   GLuint programObject;
-   GLint linked;
+	GLuint vertexShader;
+	GLuint fragmentShader;
+	GLuint programObject;
+	GLint linked;
 
-   // Load the vertex/fragment shaders
-   vertexShader = LoadShader ( GL_VERTEX_SHADER, vertShaderSrc );
-   if ( vertexShader == 0 )
-      return 0;
+	// Load the vertex/fragment shaders
+	vertexShader = LoadShader ( GL_VERTEX_SHADER, vertShaderSrc );
+	if ( vertexShader == 0 )
+		return 0;
 
-   fragmentShader = LoadShader ( GL_FRAGMENT_SHADER, fragShaderSrc );
-   if ( fragmentShader == 0 )
-   {
-      glDeleteShader( vertexShader );
-      return 0;
-   }
+	fragmentShader = LoadShader ( GL_FRAGMENT_SHADER, fragShaderSrc );
+	if ( fragmentShader == 0 )
+	{
+		glDeleteShader( vertexShader );
+		return 0;
+	}
 
-   // Create the program object
-   programObject = glCreateProgram ( );
+	// Create the program object
+	programObject = glCreateProgram ( );
 
-   if ( programObject == 0 )
-      return 0;
+	if ( programObject == 0 )
+		return 0;
 
-   glAttachShader ( programObject, vertexShader );
-   glAttachShader ( programObject, fragmentShader );
+	glAttachShader ( programObject, vertexShader );
+	glAttachShader ( programObject, fragmentShader );
 
-   // Link the program
-   glLinkProgram ( programObject );
+	// Link the program
+	glLinkProgram ( programObject );
 
-   // Check the link status
-   glGetProgramiv ( programObject, GL_LINK_STATUS, &linked );
+	// Check the link status
+	glGetProgramiv ( programObject, GL_LINK_STATUS, &linked );
 
-   if ( !linked ) 
-   {
-      GLint infoLen = 0;
-      glGetProgramiv ( programObject, GL_INFO_LOG_LENGTH, &infoLen );
+	if ( !linked ) 
+	{
+		GLint infoLen = 0;
+		glGetProgramiv ( programObject, GL_INFO_LOG_LENGTH, &infoLen );
 
-      if ( infoLen > 1 )
-      {
-         char* infoLog = malloc (sizeof(char) * infoLen );
+		if ( infoLen > 1 )
+		{
+			char* infoLog = malloc (sizeof(char) * infoLen );
 
-         glGetProgramInfoLog ( programObject, infoLen, NULL, infoLog );
-         fprintf (stderr, "Error linking program:\n%s\n", infoLog );            
+			glGetProgramInfoLog ( programObject, infoLen, NULL, infoLog );
+			fprintf(stderr, "Error linking program:\n%s\n", infoLog );            
 
-         free(infoLog);
-      }
+			free(infoLog);
+		}
 
-      glDeleteProgram ( programObject );
-      return 0;
-   }
+		glDeleteProgram ( programObject );
+		return 0;
+	}
 
-   // Free up no longer needed shader resources
-   glDeleteShader ( vertexShader );
-   glDeleteShader ( fragmentShader );
+	// Free up no longer needed shader resources
+	glDeleteShader ( vertexShader );
+	glDeleteShader ( fragmentShader );
 
-   return programObject;
+	return programObject;
 }
 
 char* readShader(char* filename)
@@ -354,8 +354,8 @@ char* readShader(char* filename)
 //
 int Init(CUBE_STATE_T *p_state)
 {
-   p_state->user_data = malloc(sizeof(UserData));      
-   UserData *userData = p_state->user_data;
+	p_state->user_data = malloc(sizeof(UserData));      
+	UserData *userData = p_state->user_data;
 
 /*
    GLbyte vShaderStr[] =  
@@ -467,43 +467,43 @@ int Init(CUBE_STATE_T *p_state)
       "}                                                     \n";
 */
 
-   // Load the shaders and get a linked program object
-   userData->programObject = LoadProgram ((char *)vShaderStr, (char *)fShaderStr_stpq );
-   if (!userData->programObject)
-   {
-     printf("Load Program %d\n", userData->programObject);
-     free(vShaderStr);
-     free(fShaderStr_stpq);
-     return GL_FALSE;
-   }
+	// Load the shaders and get a linked program object
+	userData->programObject = LoadProgram ((char *)vShaderStr, (char *)fShaderStr_stpq );
+	if (!userData->programObject)
+	{
+		printf("Load Program %d\n", userData->programObject);
+		free(vShaderStr);
+		free(fShaderStr_stpq);
+		return GL_FALSE;
+	}
 
 	free(vShaderStr);
 	free(fShaderStr_stpq);
 
-   userData->samplerLoc = glGetUniformLocation ( userData->programObject, "texture" );
+	userData->samplerLoc = glGetUniformLocation ( userData->programObject, "texture" );
 
-   // Get the attribute locations
-   userData->positionLoc = glGetAttribLocation ( userData->programObject, "a_position" ); // Query only
-   userData->texCoordLoc = glGetAttribLocation ( userData->programObject, "a_texCoord" );
+	// Get the attribute locations
+	userData->positionLoc = glGetAttribLocation ( userData->programObject, "a_position" ); // Query only
+	userData->texCoordLoc = glGetAttribLocation ( userData->programObject, "a_texCoord" );
    
-   userData->sizeLoc = glGetUniformLocation ( userData->programObject, "texSize" );
-   userData->cmatrixLoc = glGetUniformLocation ( userData->programObject, "yuv2rgb" );
+	userData->sizeLoc = glGetUniformLocation ( userData->programObject, "texSize" );
+	userData->cmatrixLoc = glGetUniformLocation ( userData->programObject, "yuv2rgb" );
    
-   // Use the program object
-   glUseProgram ( userData->programObject ); 
+	// Use the program object
+	glUseProgram ( userData->programObject ); 
 
-   // Load the vertex position
-   glVertexAttribPointer ( userData->positionLoc, 3, GL_FLOAT, 
-                           GL_FALSE, 3 * sizeof(GLfloat), p_state->vVertices );
+	// Load the vertex position
+	glVertexAttribPointer ( userData->positionLoc, 3, GL_FLOAT, 
+							GL_FALSE, 3 * sizeof(GLfloat), p_state->vVertices );
                            
-   // Load the texture coordinate
-   glVertexAttribPointer ( userData->texCoordLoc, 2, GL_FLOAT,
-                           GL_FALSE, 2 * sizeof(GLfloat), p_state->tVertices );
+	// Load the texture coordinate
+	glVertexAttribPointer ( userData->texCoordLoc, 2, GL_FLOAT,
+							GL_FALSE, 2 * sizeof(GLfloat), p_state->tVertices );
 
-   glEnableVertexAttribArray(userData->positionLoc);
-   glEnableVertexAttribArray(userData->texCoordLoc);
+	glEnableVertexAttribArray(userData->positionLoc);
+	glEnableVertexAttribArray(userData->texCoordLoc);
    
-   glUniform1i(userData->samplerLoc, 0);
+	glUniform1i(userData->samplerLoc, 0);
 
 /*
 	// Create framebuffer
@@ -526,9 +526,9 @@ int Init(CUBE_STATE_T *p_state)
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,  pCodecCtx->width, pCodecCtx->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, userData->outtex, 0);
 */
-   glClearColor ( 0.0f, 0.0f, 0.0f, 1.0f );
-   glClear(GL_COLOR_BUFFER_BIT);
-   return GL_TRUE;
+	glClearColor ( 0.0f, 0.0f, 0.0f, 1.0f );
+	glClear(GL_COLOR_BUFFER_BIT);
+	return GL_TRUE;
 }
 
 void setSize(CUBE_STATE_T *p_state, int width, int height)
@@ -550,35 +550,35 @@ void setSize(CUBE_STATE_T *p_state, int width, int height)
 
 void texImage2D(CUBE_STATE_T *p_state, unsigned char* buf, int width, int height)
 {
-   UserData *userData = p_state->user_data;
+	UserData *userData = p_state->user_data;
 
-   int w, h;
+	int w, h;
 
-   w = width;
-   h = height;
-   glActiveTexture(GL_TEXTURE0);
-   glBindTexture(GL_TEXTURE_2D, userData->tex);
-   //glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, buf);
-   glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, buf);
+	w = width;
+	h = height;
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, userData->tex);
+	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, buf);
+	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, buf);
 
-   glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, (GLfloat)GL_NEAREST);
-   glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, (GLfloat)GL_NEAREST);
-   glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, (GLfloat)GL_CLAMP_TO_EDGE);
-   glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, (GLfloat)GL_CLAMP_TO_EDGE);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, (GLfloat)GL_NEAREST);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, (GLfloat)GL_NEAREST);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, (GLfloat)GL_CLAMP_TO_EDGE);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, (GLfloat)GL_CLAMP_TO_EDGE);
 
-    //checkNoGLES2Error();
+	//checkNoGLES2Error();
 }
 
 void redraw_scene(CUBE_STATE_T *p_state)
 {
 	UserData *userData = p_state->user_data;
 
-   glUniform1i(userData->samplerLoc, 0);
-   // Set the viewport
-   glViewport(0, 0, p_state->screen_width, p_state->screen_height);
-   // Clear the color buffer
-   glClear(GL_COLOR_BUFFER_BIT);
-   glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, p_state->indices);
-   glFinish();
-   eglSwapBuffers(p_state->display, p_state->surface);
+	glUniform1i(userData->samplerLoc, 0);
+	// Set the viewport
+	glViewport(0, 0, p_state->screen_width, p_state->screen_height);
+	// Clear the color buffer
+	glClear(GL_COLOR_BUFFER_BIT);
+	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, p_state->indices);
+	glFinish();
+	eglSwapBuffers(p_state->display, p_state->surface);
 }

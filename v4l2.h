@@ -43,6 +43,9 @@ typedef struct
 	pthread_mutex_t *sizemutex;
 	pthread_cond_t *sizeready;
 	char devicename[20];
+	int playerwidth, playerheight;
+	float scale;
+	int bitrate;
 }v4l2params;
 
 struct buffer 
@@ -52,6 +55,8 @@ struct buffer
 };
 
 int enumerate_video_devices(GtkWidget *combovideodev);
+void enumerate_bitrates(GtkWidget *combobitrate);
+void enumerate_scale_values(GtkWidget *comboscale);
 void init_v4l2params(v4l2params *p, io_method io);
 void close_v4l2params(v4l2params *p);
 void errno_exit(const char* s);

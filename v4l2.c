@@ -53,6 +53,34 @@ int enumerate_video_devices(GtkWidget *combovideodev)
 	return count;
 }
 
+void enumerate_bitrates(GtkWidget *combobitrate)
+{
+	gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(combobitrate), "400000", "400 Kbps");
+	gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(combobitrate), "800000", "800 Kbps");
+	gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(combobitrate), "1000000", "1 Mbps");
+	gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(combobitrate), "2500000", "2.5 Mbps");
+	gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(combobitrate), "5000000", "5 Mbps");
+	gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(combobitrate), "8000000", "8 Mbps");
+}
+
+void enumerate_scale_values(GtkWidget *comboscale)
+{
+	char s[10];
+
+	sprintf(s, "%1.2f", 0.25);
+	gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(comboscale), s, "0.25");
+	sprintf(s, "%1.2f", 0.33);
+	gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(comboscale), s, "0.33");
+	sprintf(s, "%1.2f", 0.50);
+	gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(comboscale), s, "0.50");
+	sprintf(s, "%1.2f", 0.75);
+	gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(comboscale), s, "0.75");
+	sprintf(s, "%1.2f", 1.00);
+	gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(comboscale), s, "1.00");
+	sprintf(s, "%1.2f", 1.25);
+	gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(comboscale), s, "1.25");
+}
+
 void init_v4l2params(v4l2params *p, io_method io)
 {
 	p->io = io;
@@ -700,6 +728,9 @@ void deviceInit(v4l2params *p)
 			userptrInit(fmt. fmt.pix.sizeimage, p);
 			break;
 	}
+
+	p->playerwidth = p->width * p->scale;
+	p->playerheight = p->height * 3/2 * p->scale;
 
 	pthread_mutex_lock(p->sizemutex);
 	p->framesizeready = 1;

@@ -59,18 +59,6 @@
 #include "encode.h"
 #include "VideoQueue.h"
 
-// global settings
-
-#define scale 2
-
-int playerwidth = 720 / scale;
-int playerheight = (576 * 3/2) / scale;
-CUBE_STATE_T state, *p_state = &state;
-
-// v4l2 device
-//unsigned int width = 720;
-//unsigned int height = 576;
-//static char* deviceName = "/dev/video0";
 //static unsigned char jpegQuality = 70;
 //static char* jpegFilename = NULL;
 
@@ -82,18 +70,24 @@ typedef struct
 }queues;
 queues q2;
 
+CUBE_STATE_T state, *p_state = &state;
+
 pthread_t tid[4];
 int retval_wait, retval_capture, retval_play, retval_encode;
 cpu_set_t cpu[4];
 
 GtkWidget *window;
 GtkWidget *capturebox;
+GtkWidget *vcapturebox;
 GtkWidget *imagebox;
 GtkWidget *dwgarea;
 GdkPixbuf *pixbuf;
 GMutex pixbufmutex;
 GtkWidget *buttonbox1;
+GtkWidget *buttonbox2;
 GtkWidget *videodev;
+GtkWidget *bitrate;
+GtkWidget *scale;
 GtkWidget *button1;
 GtkWidget *button2;
 GtkWidget *hbox;
@@ -118,6 +112,15 @@ gboolean invalidate(gpointer data)
 	gdk_window_invalidate_region (dawin, region, TRUE);
 	//gdk_window_process_updates (dawin, TRUE);
 	cairo_region_destroy(region);
+	return FALSE;
+}
+
+gboolean resizewindow(gpointer data)
+{
+	queues *q = (queues *)data;
+
+	gtk_widget_set_size_request(dwgarea, q->p.playerwidth, q->p.playerheight);
+	gtk_window_resize(GTK_WINDOW(window), 1, 1);
 	return FALSE;
 }
 
@@ -146,7 +149,6 @@ void initPixbuf(int width, int height)
 
 /**
   Convert from YUV422 format to RGB888. Formulae are described on http://en.wikipedia.org/wiki/YUV
-
   \param width width of image
   \param height height of image
   \param src source
@@ -204,10 +206,12 @@ void* playThread(void *arg)
 	}
 	pthread_mutex_unlock(q->p.sizemutex);
 
+	gdk_threads_add_idle(resizewindow, (void *)q);
+
 	if (useGL)
 	{
 		bcm_host_init();
-		init_ogl2(p_state, playerwidth, playerheight); // Render to Frame Buffer
+		init_ogl2(p_state, q->p.playerwidth, q->p.playerheight); // Render to Frame Buffer
 		if (Init(p_state) == GL_FALSE)
 		{
 			printf("Init\n");
@@ -321,9 +325,7 @@ static void usage(FILE* fp, int argc, char** argv)
     "",
     argv[0]);
 }
-
 static const char short_options [] = "d:ho:q:mruW:H:";
-
 static const struct option
 long_options [] = {
         { "device",     required_argument,      NULL,           'd' },
@@ -349,33 +351,26 @@ void* captureThread(void *arg)
     int index, c = 0;
                 
     c = getopt_long(argc, argv, short_options, long_options, &index);
-
     if (-1 == c)
       break;
-
     switch (c) {
       case 0: // getopt_long() flag
         break;
-
       case 'd':
         deviceName = optarg;
         break;
-
       case 'h':
         // print help
         usage (stdout, argc, argv);
         exit(EXIT_SUCCESS);
-
       case 'o':
         // set jpeg filename
         jpegFilename = optarg;
         break;
-
       case 'q':
         // set jpeg filename
         jpegQuality = atoi(optarg);
         break;
-
       case 'm':
 #ifdef IO_MMAP
         io = IO_METHOD_MMAP;
@@ -384,7 +379,6 @@ void* captureThread(void *arg)
         exit(EXIT_FAILURE);         
 #endif
         break;
-
       case 'r':
 #ifdef IO_READ
         io = IO_METHOD_READ;
@@ -393,7 +387,6 @@ void* captureThread(void *arg)
         exit(EXIT_FAILURE);         
 #endif
         break;
-
       case 'u':
 #ifdef IO_USERPTR
         io = IO_METHOD_USERPTR;
@@ -402,23 +395,19 @@ void* captureThread(void *arg)
         exit(EXIT_FAILURE);         
 #endif
         break;
-
       case 'W':
         // set width
         width = atoi(optarg);
         break;
-
       case 'H':
         // set height
         height = atoi(optarg);
         break;
-
       default:
         usage(stderr, argc, argv);
         exit(EXIT_FAILURE);
     }
   }
-
   // check for need parameters
   if (!jpegFilename) {
         fprintf(stderr, "You have to specify JPEG output filename!\n\n");
@@ -463,7 +452,7 @@ void* encodeThread(void *arg)
 	}
 	pthread_mutex_unlock(q->p.sizemutex);
 
-	init_encoder(&enc, "/media/pi/Ilker/v4l2grab1.mp4", 400000, q->p.width / scale, q->p.height / scale);
+	init_encoder(&enc, "/media/pi/Ilker/v4l2grab1.mp4", q->p.bitrate, q->p.width * q->p.scale, q->p.height * q->p.scale);
 
 	while (1)
 	{
@@ -601,6 +590,28 @@ void videodev_changed(GtkWidget *combo, gpointer data)
 	g_free(device);
 }
 
+void bitrate_changed(GtkWidget *combo, gpointer data)
+{
+	queues *q = (queues *)data;
+
+	gchar *bitrate;
+	g_object_get((gpointer)combo, "active-id", &bitrate, NULL);
+//printf("%s\n", bitrate);
+	q->p.bitrate = atoi(bitrate);
+	g_free(bitrate);
+}
+
+void scale_changed(GtkWidget *combo, gpointer data)
+{
+	queues *q = (queues *)data;
+
+	gchar *scaleval;
+	g_object_get((gpointer)combo, "active-id", &scaleval, NULL);
+	q->p.scale = atof(scaleval);
+//printf("%5.2f\n", q->p.scale);
+	g_free(scaleval);
+}
+
 static void button1_clicked(GtkWidget *button, gpointer data)
 {
 	queues *q = (queues *)data;
@@ -655,58 +666,66 @@ void setup_default_icon(char *filename)
 
 int main(int argc, char **argv)
 {
+	q2.p.playerwidth = 640;
+	q2.p.playerheight = 360; // dummy size
+
 	setup_default_icon("./v4l2.png");
 
-     /* This is called in all GTK applications. Arguments are parsed
-     * from the command line and are returned to the application. */
-    gtk_init (&argc, &argv);
+	/* This is called in all GTK applications. Arguments are parsed
+	* from the command line and are returned to the application. */
+	gtk_init (&argc, &argv);
     
-    /* create a new window */
-    window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-    gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_CENTER);
-    /* Sets the border width of the window. */
-    gtk_container_set_border_width (GTK_CONTAINER (window), 2);
-	gtk_widget_set_size_request(window, 100, 100);
+	/* create a new window */
+	window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+	gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_CENTER);
+	/* Sets the border width of the window. */
+	gtk_container_set_border_width (GTK_CONTAINER (window), 2);
+	//gtk_widget_set_size_request(window, 100, 100);
 	gtk_window_set_title(GTK_WINDOW(window), "Video Capture");
 	gtk_window_set_resizable(GTK_WINDOW(window), FALSE);
 
-    /* When the window is given the "delete-event" signal (this is given
-     * by the window manager, usually by the "close" option, or on the
-     * titlebar), we ask it to call the delete_event () function
-     * as defined above. The data passed to the callback
-     * function is NULL and is ignored in the callback function. */
-    g_signal_connect (window, "delete-event", G_CALLBACK (delete_event), (void *)&q2);
+	/* When the window is given the "delete-event" signal (this is given
+	* by the window manager, usually by the "close" option, or on the
+	* titlebar), we ask it to call the delete_event () function
+	* as defined above. The data passed to the callback
+	* function is NULL and is ignored in the callback function. */
+	g_signal_connect (window, "delete-event", G_CALLBACK (delete_event), (void *)&q2);
     
-    /* Here we connect the "destroy" event to a signal handler.  
-     * This event occurs when we call gtk_widget_destroy() on the window,
-     * or if we return FALSE in the "delete-event" callback. */
-    g_signal_connect (window, "destroy", G_CALLBACK (destroy), NULL);
+	/* Here we connect the "destroy" event to a signal handler.  
+	* This event occurs when we call gtk_widget_destroy() on the window,
+	* or if we return FALSE in the "delete-event" callback. */
+	g_signal_connect (window, "destroy", G_CALLBACK (destroy), NULL);
 
-    g_signal_connect (window, "realize", G_CALLBACK (realize_cb), NULL);
-//printf("realized\n");
+	g_signal_connect (window, "realize", G_CALLBACK (realize_cb), NULL);
 
 // vertical box
-    capturebox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 5);
-    gtk_container_add(GTK_CONTAINER(window), capturebox);
+	vcapturebox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 5);
+	gtk_container_add(GTK_CONTAINER(window), vcapturebox);
+
+// vertical box
+	capturebox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 5);
+	//gtk_box_pack_start(GTK_BOX(vcapturebox), capturebox, TRUE, TRUE, 0);
+	gtk_container_add(GTK_CONTAINER(vcapturebox), capturebox);
 
 // horizontal box
-    imagebox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 5);
-    gtk_container_add(GTK_CONTAINER(capturebox), imagebox);
+	imagebox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 5);
+	//gtk_box_pack_start(GTK_BOX(capturebox), imagebox, TRUE, TRUE, 0);
+	gtk_container_add(GTK_CONTAINER(capturebox), imagebox);
 
 // drawing area
-    dwgarea = gtk_drawing_area_new();
-    gtk_widget_set_size_request (dwgarea, playerwidth, playerheight);
-    //gtk_widget_set_size_request (dwgarea, 1280, 720);
-    gtk_container_add(GTK_CONTAINER(imagebox), dwgarea);
+	dwgarea = gtk_drawing_area_new();
+	gtk_widget_set_size_request (dwgarea, q2.p.playerwidth, q2.p.playerheight);
+	//gtk_box_pack_start(GTK_BOX(imagebox), dwgarea, TRUE, TRUE, 0);
+	gtk_container_add(GTK_CONTAINER(imagebox), dwgarea);
 
-    // Signals used to handle the backing surface
-    g_signal_connect (dwgarea, "draw", G_CALLBACK(draw_cb), NULL);
-    gtk_widget_set_app_paintable(dwgarea, TRUE);
+	// Signals used to handle the backing surface
+	g_signal_connect (dwgarea, "draw", G_CALLBACK(draw_cb), NULL);
+	gtk_widget_set_app_paintable(dwgarea, TRUE);
 
 // horizontal button box
-    buttonbox1 = gtk_button_box_new (GTK_ORIENTATION_HORIZONTAL);
-    gtk_button_box_set_layout((GtkButtonBox *)buttonbox1, GTK_BUTTONBOX_START);
-    gtk_container_add(GTK_CONTAINER(capturebox), buttonbox1);
+	buttonbox1 = gtk_button_box_new (GTK_ORIENTATION_HORIZONTAL);
+	gtk_button_box_set_layout((GtkButtonBox *)buttonbox1, GTK_BUTTONBOX_START);
+	gtk_container_add(GTK_CONTAINER(capturebox), buttonbox1);
 
 // video devices
 	videodev = gtk_combo_box_text_new();
@@ -714,21 +733,44 @@ int main(int argc, char **argv)
 	gtk_combo_box_set_active((gpointer)videodev, 0);
 	g_signal_connect(GTK_COMBO_BOX(videodev), "changed", G_CALLBACK(videodev_changed), (void *)&q2);
 	gtk_container_add(GTK_CONTAINER(buttonbox1), videodev);
+	gtk_button_box_set_child_non_homogeneous((GtkButtonBox *)buttonbox1, videodev, TRUE);
+
+// bit rate
+	bitrate = gtk_combo_box_text_new();
+	enumerate_bitrates(bitrate);
+	gtk_combo_box_set_active((gpointer)bitrate, 0);
+	g_signal_connect(GTK_COMBO_BOX(bitrate), "changed", G_CALLBACK(bitrate_changed), (void *)&q2);
+	gtk_container_add(GTK_CONTAINER(buttonbox1), bitrate);
+	gtk_button_box_set_child_non_homogeneous((GtkButtonBox *)buttonbox1, bitrate, TRUE);
+	bitrate_changed(bitrate, (void *)&q2);
+
+// horizontal button box
+	buttonbox2 = gtk_button_box_new (GTK_ORIENTATION_HORIZONTAL);
+	gtk_button_box_set_layout((GtkButtonBox *)buttonbox2, GTK_BUTTONBOX_START);
+	gtk_container_add(GTK_CONTAINER(capturebox), buttonbox2);
 
 // button capture
-    button1 = gtk_button_new_with_label("Start");
-    g_signal_connect(GTK_BUTTON(button1), "clicked", G_CALLBACK(button1_clicked), (void *)&q2);
-    gtk_container_add(GTK_CONTAINER(buttonbox1), button1);
+	button1 = gtk_button_new_with_label("Start");
+	g_signal_connect(GTK_BUTTON(button1), "clicked", G_CALLBACK(button1_clicked), (void *)&q2);
+	gtk_container_add(GTK_CONTAINER(buttonbox2), button1);
 
 // button stop
-    button2 = gtk_button_new_with_label("Stop");
-    g_signal_connect(GTK_BUTTON(button2), "clicked", G_CALLBACK(button2_clicked), (void *)&q2);
-    gtk_container_add(GTK_CONTAINER(buttonbox1), button2);
+	button2 = gtk_button_new_with_label("Stop");
+	g_signal_connect(GTK_BUTTON(button2), "clicked", G_CALLBACK(button2_clicked), (void *)&q2);
+	gtk_container_add(GTK_CONTAINER(buttonbox2), button2);
 	gtk_widget_set_sensitive(button2, FALSE);
 
+// scale
+	scale = gtk_combo_box_text_new();
+	enumerate_scale_values(scale);
+	gtk_combo_box_set_active((gpointer)scale, 2);
+	g_signal_connect(GTK_COMBO_BOX(scale), "changed", G_CALLBACK(scale_changed), (void *)&q2);
+	gtk_container_add(GTK_CONTAINER(buttonbox2), scale);
+	scale_changed(scale, (void *)&q2);
+
 // horizontal box
-    hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 5);
-    gtk_container_add(GTK_CONTAINER(capturebox), hbox);
+	hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 5);
+	gtk_container_add(GTK_CONTAINER(capturebox), hbox);
     
 // checkbox
 	useGL = TRUE;
@@ -737,7 +779,7 @@ int main(int argc, char **argv)
 	g_signal_connect(GTK_TOGGLE_BUTTON(glcheckbox), "toggled", G_CALLBACK(usegl_toggled), NULL);
 	gtk_container_add(GTK_CONTAINER(hbox), glcheckbox);
 
-	initPixbuf(playerwidth, playerheight);
+	initPixbuf(q2.p.playerwidth, q2.p.playerheight);
 
 	gtk_widget_show_all(window);
 

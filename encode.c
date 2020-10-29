@@ -52,8 +52,8 @@ int init_encoder(videoencoder *v, char *filename, int bitrate, int width, int he
 	avcodec_register_all();
  
 	/* find the video encoder */
-	//if (!(v->codec = avcodec_find_encoder(AV_CODEC_ID_H264)))
-	if (!(v->codec = avcodec_find_encoder(AV_CODEC_ID_MPEG2VIDEO)))
+	if (!(v->codec = avcodec_find_encoder(AV_CODEC_ID_H264)))
+	//if (!(v->codec = avcodec_find_encoder(AV_CODEC_ID_MPEG2VIDEO)))
 	{
 		printf("Codec not found\n");
 		return -1;
@@ -72,7 +72,7 @@ int init_encoder(videoencoder *v, char *filename, int bitrate, int width, int he
 	}
  
 	/* put sample parameters */
-	v->c->bit_rate = bitrate; // 400000
+	v->c->bit_rate = bitrate;
 	/* resolution must be a multiple of two */
 	v->c->width = width;
 	v->c->height = height;
@@ -90,8 +90,15 @@ int init_encoder(videoencoder *v, char *filename, int bitrate, int width, int he
 	v->c->max_b_frames = 1;
 	v->c->pix_fmt = AV_PIX_FMT_YUV420P;
 
-	//if (v->codec->id == AV_CODEC_ID_H264)
-	//	av_opt_set(v->c->priv_data, "preset", "slow", 0);
+	if (v->codec->id == AV_CODEC_ID_H264)
+	{
+		// preset: ultrafast, superfast, veryfast, faster, fast, medium, slow, slower, veryslow, placebo
+		av_opt_set(v->c->priv_data, "preset", "veryfast", 0);
+		// tune: film, animation, grain, stillimage, psnr, ssim, fastdecode, zerolatency
+		av_opt_set(v->c->priv_data, "tune", "zerolatency", 0);
+		// profile: baseline, main, high, high10, high422, high444
+		av_opt_set(v->c->priv_data, "profile", "main", 0);
+	}
 
 
 	v->c->thread_count = 4;
