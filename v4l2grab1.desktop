@@ -1,0 +1,13 @@
+[Desktop Entry]
+Type=Application
+Encoding=UTF-8
+Name=Video Capture 1
+Comment=Video Capture V4L2
+Exec=/home/pi/Desktop/C/V4L2/v4l2grab1
+Icon=/home/pi/Desktop/C/V4L2/v4l2.png
+Terminal=false
+Path=/home/pi/Desktop/C/V4L2
+GenericName=Video Capture 1
+StartupNotify=false
+Name[tr_TR]=Video Capture 1
+Categories=GNOME;GTK;Video

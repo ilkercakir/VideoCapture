@@ -24,10 +24,13 @@
 /***************************************************************************
  *   Modified 2017, İlker Çakır                                            *
  *   Added GPU support using open GLES 2.0                                 *
+ *   Modified 2020, İlker Çakır                                            *
+ *   Added YUYV -> YUV420 GPU accelerated transcoder                       *
+ *   Added ffmpeg encoder                                                  *
  ***************************************************************************/
 
-// compile with gcc -Wall -c "%f" -DUSE_OPENGL -DUSE_EGL -DIS_RPI -DSTANDALONE -D__STDC_CONSTANT_MACROS -D__STDC_LIMIT_MACROS -DTARGET_POSIX -D_LINUX -fPIC -DPIC -D_REENTRANT -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64 -U_FORTIFY_SOURCE -g -ftree-vectorize -pipe -DHAVE_LIBBCM_HOST -DUSE_EXTERNAL_LIBBCM_HOST -DUSE_VCHIQ_ARM -mcpu=cortex-a53 -mfloat-abi=hard -mfpu=neon-fp-armv8 -mneon-for-64bits -I/opt/vc/include/ -I/opt/vc/include/interface/vcos/pthreads -I/opt/vc/include/interface/vmcs_host/linux -Wno-deprecated-declarations -DIO_USERPTR $(pkg-config --cflags gtk+-3.0)
-// link with gcc -Wall -o "%e" "%f" -D_POSIX_C_SOURCE=199309L -DIO_READ -DIO_MMAP -DIO_USERPTR $(pkg-config --cflags gtk+-3.0) -Wl,--whole-archive -I/opt/vc/include -L/opt/vc/lib/ -lGLESv2 -lEGL -lbcm_host -lvchiq_arm -lpthread -lrt -ldl -lm -Wl,--no-whole-archive -rdynamic $(pkg-config --libs gtk+-3.0) $(pkg-config --cflags gtk+-3.0) $(pkg-config --libs gtk+-3.0) -ljpeg -lm
+// compile with gcc -Wall -c "%f" -DUSE_OPENGL -DUSE_EGL -DIS_RPI -DSTANDALONE -D__STDC_CONSTANT_MACROS -D__STDC_LIMIT_MACROS -DTARGET_POSIX -D_LINUX -fPIC -DPIC -D_REENTRANT -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64 -U_FORTIFY_SOURCE -g -ftree-vectorize -pipe -DHAVE_LIBBCM_HOST -DUSE_EXTERNAL_LIBBCM_HOST -DUSE_VCHIQ_ARM -mcpu=cortex-a53 -mfloat-abi=hard -mfpu=neon-fp-armv8 -mneon-for-64bits -I/opt/vc/include/ -I/opt/vc/include/interface/vcos/pthreads -I/opt/vc/include/interface/vmcs_host/linux -Wno-deprecated-declarations $(pkg-config --cflags gtk+-3.0)
+// link with gcc -Wall -o "%e" "%f" YUYVYUV420gl.o v4l2.o VideoQueue.o encode.o -D_POSIX_C_SOURCE=199309L $(pkg-config --cflags gtk+-3.0) -Wl,--whole-archive -I/opt/vc/include -L/opt/vc/lib/ -lGLESv2 -lEGL -lbcm_host -lvchiq_arm -lpthread -lrt -ldl -lm -Wl,--no-whole-archive -rdynamic $(pkg-config --libs gtk+-3.0) $(pkg-config --cflags gtk+-3.0) $(pkg-config --libs gtk+-3.0) $(pkg-config --libs libavcodec libavformat libavutil libswscale) -ljpeg -lm
 
 #define _GNU_SOURCE
 
@@ -83,6 +86,8 @@ GtkWidget *imagebox;
 GtkWidget *dwgarea;
 GdkPixbuf *pixbuf;
 GMutex pixbufmutex;
+GtkWidget *window2;
+GtkWidget *controlbox;
 GtkWidget *buttonbox1;
 GtkWidget *buttonbox2;
 GtkWidget *videodev;
@@ -579,6 +584,22 @@ static gboolean draw_cb(GtkWidget *widget, cairo_t *cr, gpointer data)
 	return FALSE;
 }
 
+static gboolean delete_event2(GtkWidget *widget, GdkEvent *event, gpointer data)
+{
+//g_print ("delete event occurred\n");
+    return TRUE; // return FALSE to emit destroy signal
+}
+
+static void destroy2(GtkWidget *widget, gpointer data)
+{
+//printf("gtk_main_quit\n");
+}
+
+static void realize_cb2(GtkWidget *widget, gpointer data)
+{
+}
+
+
 void videodev_changed(GtkWidget *combo, gpointer data)
 {
 	queues *q = (queues *)data;
@@ -719,13 +740,46 @@ int main(int argc, char **argv)
 	gtk_container_add(GTK_CONTAINER(imagebox), dwgarea);
 
 	// Signals used to handle the backing surface
-	g_signal_connect (dwgarea, "draw", G_CALLBACK(draw_cb), NULL);
+	g_signal_connect(dwgarea, "draw", G_CALLBACK(draw_cb), NULL);
 	gtk_widget_set_app_paintable(dwgarea, TRUE);
+
+	initPixbuf(q2.p.playerwidth, q2.p.playerheight);
+
+	gtk_widget_show_all(window);
+
+
+	/* create a new window */
+	window2 = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+	gtk_window_set_position(GTK_WINDOW(window2), GTK_WIN_POS_CENTER);
+	/* Sets the border width of the window. */
+	gtk_container_set_border_width (GTK_CONTAINER (window2), 2);
+	//gtk_widget_set_size_request(window, 100, 100);
+	gtk_window_set_title(GTK_WINDOW(window2), "Video Capture Control");
+	gtk_window_set_resizable(GTK_WINDOW(window2), FALSE);
+
+	/* When the window is given the "delete-event" signal (this is given
+	* by the window manager, usually by the "close" option, or on the
+	* titlebar), we ask it to call the delete_event () function
+	* as defined above. The data passed to the callback
+	* function is NULL and is ignored in the callback function. */
+	g_signal_connect (window2, "delete-event", G_CALLBACK(delete_event2), NULL);
+    
+	/* Here we connect the "destroy" event to a signal handler.  
+	* This event occurs when we call gtk_widget_destroy() on the window,
+	* or if we return FALSE in the "delete-event" callback. */
+	g_signal_connect (window2, "destroy", G_CALLBACK(destroy2), NULL);
+
+	g_signal_connect (window2, "realize", G_CALLBACK(realize_cb2), NULL);
+
+// vertical box
+	controlbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 5);
+	//gtk_box_pack_start(GTK_BOX(vcapturebox), capturebox, TRUE, TRUE, 0);
+	gtk_container_add(GTK_CONTAINER(window2), controlbox);
 
 // horizontal button box
 	buttonbox1 = gtk_button_box_new (GTK_ORIENTATION_HORIZONTAL);
 	gtk_button_box_set_layout((GtkButtonBox *)buttonbox1, GTK_BUTTONBOX_START);
-	gtk_container_add(GTK_CONTAINER(capturebox), buttonbox1);
+	gtk_container_add(GTK_CONTAINER(controlbox), buttonbox1);
 
 // video devices
 	videodev = gtk_combo_box_text_new();
@@ -747,7 +801,7 @@ int main(int argc, char **argv)
 // horizontal button box
 	buttonbox2 = gtk_button_box_new (GTK_ORIENTATION_HORIZONTAL);
 	gtk_button_box_set_layout((GtkButtonBox *)buttonbox2, GTK_BUTTONBOX_START);
-	gtk_container_add(GTK_CONTAINER(capturebox), buttonbox2);
+	gtk_container_add(GTK_CONTAINER(controlbox), buttonbox2);
 
 // button capture
 	button1 = gtk_button_new_with_label("Start");
@@ -770,7 +824,7 @@ int main(int argc, char **argv)
 
 // horizontal box
 	hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 5);
-	gtk_container_add(GTK_CONTAINER(capturebox), hbox);
+	gtk_container_add(GTK_CONTAINER(controlbox), hbox);
     
 // checkbox
 	useGL = TRUE;
@@ -779,9 +833,7 @@ int main(int argc, char **argv)
 	g_signal_connect(GTK_TOGGLE_BUTTON(glcheckbox), "toggled", G_CALLBACK(usegl_toggled), NULL);
 	gtk_container_add(GTK_CONTAINER(hbox), glcheckbox);
 
-	initPixbuf(q2.p.playerwidth, q2.p.playerheight);
-
-	gtk_widget_show_all(window);
+	gtk_widget_show_all(window2);
 
 	gtk_main();
 
