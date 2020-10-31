@@ -24,15 +24,15 @@ long_line_column=72
 
 [files]
 current_page=0
-FILE_NAME_0=24881;C;0;EUTF-8;1;1;0;%2Fhome%2Fpi%2FDesktop%2FC%2FV4L2%2Fv4l2grab1.c;0;4
+FILE_NAME_0=15341;C;0;EUTF-8;1;1;0;%2Fhome%2Fpi%2FDesktop%2FC%2FV4L2%2Fv4l2grab1.c;0;4
 FILE_NAME_1=2883;C;0;EUTF-8;1;1;0;%2Fhome%2Fpi%2FDesktop%2FC%2FV4L2%2Fencode.c;0;4
 FILE_NAME_2=458;C;0;EUTF-8;1;1;0;%2Fhome%2Fpi%2FDesktop%2FC%2FV4L2%2Fencode.h;0;4
 FILE_NAME_3=0;GLSL;0;EUTF-8;1;1;0;%2Fhome%2Fpi%2FDesktop%2FC%2FV4L2%2Fshader.vert;0;4
 FILE_NAME_4=912;GLSL;0;EUTF-8;1;1;0;%2Fhome%2Fpi%2FDesktop%2FC%2FV4L2%2Fshader.frag;0;4
 FILE_NAME_5=18994;C;0;EUTF-8;1;1;0;%2Fhome%2Fpi%2FDesktop%2FC%2FV4L2%2FYUYVYUV420gl.c;0;4
 FILE_NAME_6=737;C;0;EUTF-8;1;1;0;%2Fhome%2Fpi%2FDesktop%2FC%2FV4L2%2FYUYVYUV420gl.h;0;4
-FILE_NAME_7=2744;C;0;EUTF-8;1;1;0;%2Fhome%2Fpi%2FDesktop%2FC%2FV4L2%2Fv4l2.c;0;4
-FILE_NAME_8=1071;C;0;EUTF-8;1;1;0;%2Fhome%2Fpi%2FDesktop%2FC%2FV4L2%2Fv4l2.h;0;4
+FILE_NAME_7=2793;C;0;EUTF-8;1;1;0;%2Fhome%2Fpi%2FDesktop%2FC%2FV4L2%2Fv4l2.c;0;4
+FILE_NAME_8=504;C;0;EUTF-8;1;1;0;%2Fhome%2Fpi%2FDesktop%2FC%2FV4L2%2Fv4l2.h;0;4
 FILE_NAME_9=25;C;0;EUTF-8;1;1;0;%2Fhome%2Fpi%2FDesktop%2FC%2FV4L2%2FVideoQueue.c;0;4
 FILE_NAME_10=257;C;0;EUTF-8;1;1;0;%2Fhome%2Fpi%2FDesktop%2FC%2FV4L2%2FVideoQueue.h;0;4
 
@@ -47,3 +47,6 @@ CFT_01_LB=İn_şa Et
 CFT_01_CM=gcc -Wall -o "%e" "%f" YUYVYUV420gl.o v4l2.o VideoQueue.o encode.o -D_POSIX_C_SOURCE=199309L $(pkg-config --cflags gtk+-3.0) -Wl,--whole-archive -I/opt/vc/include -L/opt/vc/lib/ -lGLESv2 -lEGL -lbcm_host -lvchiq_arm -lpthread -lrt -ldl -lm -Wl,--no-whole-archive -rdynamic $(pkg-config --libs gtk+-3.0) $(pkg-config --cflags gtk+-3.0) $(pkg-config --libs gtk+-3.0) $(pkg-config --libs libavcodec libavformat libavutil libswscale) -ljpeg -lm
 CFT_01_WD=
 filetypes=C;
+NF_03_LB=Github
+NF_03_CM=git gui
+NF_03_WD=
