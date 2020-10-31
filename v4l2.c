@@ -139,57 +139,6 @@ int xioctl(int fd, int request, void* argp)
   return r;
 }
 
-// Write image to jpeg file.
-/*
-static void jpegWrite(unsigned char* img)
-{
-  struct jpeg_compress_struct cinfo;
-  struct jpeg_error_mgr jerr;
-	
-  JSAMPROW row_pointer[1];
-  FILE *outfile = fopen( jpegFilename, "wb" );
-
-  // try to open file for saving
-  if (!outfile) {
-    errno_exit("jpeg");
-  }
-
-  // create jpeg data
-  cinfo.err = jpeg_std_error( &jerr );
-  jpeg_create_compress(&cinfo);
-  jpeg_stdio_dest(&cinfo, outfile);
-
-  // set image parameters
-  cinfo.image_width = width;	
-  cinfo.image_height = height;
-  cinfo.input_components = 3;
-  cinfo.in_color_space = JCS_RGB;
-
-  // set jpeg compression parameters to default
-  jpeg_set_defaults(&cinfo);
-  // and then adjust quality setting
-  jpeg_set_quality(&cinfo, jpegQuality, TRUE);
-
-  // start compress 
-  jpeg_start_compress(&cinfo, TRUE);
-
-  // feed data
-  while (cinfo.next_scanline < cinfo.image_height) {
-    row_pointer[0] = &img[cinfo.next_scanline * cinfo.image_width *  cinfo.input_components];
-    jpeg_write_scanlines(&cinfo, row_pointer, 1);
-  }
-
-  // finish compression
-  jpeg_finish_compress(&cinfo);
-
-  // destroy jpeg data
-  jpeg_destroy_compress(&cinfo);
-
-  // close output file
-  fclose(outfile);
-}
-*/
-
 /**
   process image read
 */
