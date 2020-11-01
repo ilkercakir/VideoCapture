@@ -37,6 +37,9 @@ int enumerate_video_devices(GtkWidget *combovideodev)
 			count++;
 		}
 	}
+	if (!count)
+		gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(combovideodev), "", "No Capture Devices");
+		
 
 /*
 	if(ioctl(fd, VIDIOCGWIN, &video_win) == -1)

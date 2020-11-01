@@ -831,7 +831,7 @@ int main(int argc, char **argv)
 
 // video devices
 	videodev = gtk_combo_box_text_new();
-	enumerate_video_devices(videodev);
+	int count_videodev = enumerate_video_devices(videodev);
 	gtk_combo_box_set_active((gpointer)videodev, 0);
 	g_signal_connect(GTK_COMBO_BOX(videodev), "changed", G_CALLBACK(videodev_changed), (void *)&q2);
 	gtk_container_add(GTK_CONTAINER(buttonbox1), videodev);
@@ -856,6 +856,8 @@ int main(int argc, char **argv)
 	button1 = gtk_button_new_with_label("Start");
 	g_signal_connect(GTK_BUTTON(button1), "clicked", G_CALLBACK(button1_clicked), (void *)&q2);
 	gtk_container_add(GTK_CONTAINER(buttonbox2), button1);
+	if (!count_videodev)
+		gtk_widget_set_sensitive(button1, FALSE);
 
 // button stop
 	button2 = gtk_button_new_with_label("Stop");
