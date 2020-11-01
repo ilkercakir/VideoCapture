@@ -93,10 +93,13 @@ GtkWidget *buttonbox2;
 GtkWidget *videodev;
 GtkWidget *bitrate;
 GtkWidget *scale;
+GtkWidget *iomethod;
 GtkWidget *button1;
 GtkWidget *button2;
 GtkWidget *hbox;
 GtkWidget *glcheckbox;
+GtkWidget *buttonbox3;
+GtkWidget *button3;
 
 int running = 0;
 int useGL = 1;
@@ -302,7 +305,7 @@ void* playThread(void *arg)
 			g_mutex_lock(&pixbufmutex);
 			//glReadPixels(0, 0, p_state->screen_width, p_state->screen_height*4/3, GL_ALPHA, GL_UNSIGNED_BYTE, userData->outrgb);
 			glReadPixels(0, 0, p_state->screen_width, p_state->screen_height, GL_RGBA, GL_UNSIGNED_BYTE, userData->outrgb);
-			checkNoGLES2Error();
+			//checkNoGLES2Error();
 //printf("wh %d %d\n", p_state->screen_width, p_state->screen_height);
 /*
 			//stub
@@ -359,43 +362,6 @@ void* playThread(void *arg)
 	retval_play = 0;
 	pthread_exit((void*)&retval_play);
 }
-
-
-
-// print usage information
-/*
-static void usage(FILE* fp, int argc, char** argv)
-{
-  fprintf (fp,
-    "Usage: %s [options]\n\n"
-    "Options:\n"
-    "-d | --device name   Video device name [/dev/video0]\n"
-    "-h | --help          Print this message\n"
-    "-o | --output        JPEG output filename\n"
-    "-q | --quality       JPEG quality (0-100)\n"
-    "-m | --mmap          Use memory mapped buffers\n"
-    "-r | --read          Use read() calls\n"
-    "-u | --userptr       Use application allocated buffers\n"
-    "-W | --width         width\n"
-    "-H | --height        height\n"
-    "",
-    argv[0]);
-}
-static const char short_options [] = "d:ho:q:mruW:H:";
-static const struct option
-long_options [] = {
-        { "device",     required_argument,      NULL,           'd' },
-        { "help",       no_argument,            NULL,           'h' },
-        { "output",     required_argument,      NULL,           'o' },
-        { "quality",    required_argument,      NULL,           'q' },
-        { "mmap",       no_argument,            NULL,           'm' },
-        { "read",       no_argument,            NULL,           'r' },
-        { "userptr",    no_argument,            NULL,           'u' },
-        { "width",      required_argument,      NULL,           'W' },
-        { "height",     required_argument,      NULL,           'H' },
-        { 0, 0, 0, 0 }
-};
-*/
 
 void* captureThread(void *arg)
 {
@@ -508,7 +474,7 @@ void* encodeThread(void *arg)
 	}
 	pthread_mutex_unlock(q->p.sizemutex);
 
-	init_encoder(&enc, "/media/pi/Ilker/v4l2grab1.mp4", q->p.bitrate, q->p.width * q->p.scale, q->p.height * q->p.scale);
+	init_encoder(&enc, q->p.filename, q->p.bitrate, q->p.width * q->p.scale, q->p.height * q->p.scale);
 
 	while (1)
 	{
@@ -530,14 +496,16 @@ void* encodeThread(void *arg)
 
 void* waitThread(void *arg)
 {
+	queues *q = (queues *)arg;
+	v4l2params *p = &(q->p);
+	
 	// Init Video Queue
-	queues_init(&q2);
-	init_v4l2params(&(q2.p), IO_METHOD_USERPTR);
-	//init_v4l2params(&(q2.p), IO_METHOD_READ);
+	queues_init(q);
+	init_v4l2params(p);
 
 	int err;
 
-	err = pthread_create(&(tid[1]), NULL, &captureThread, (void *)&q2);
+	err = pthread_create(&(tid[1]), NULL, &captureThread, (void *)q);
 	if (err)
 	{}
 	CPU_ZERO(&(cpu[1]));
@@ -546,7 +514,7 @@ void* waitThread(void *arg)
 	if (err)
 	{}
 
-	err = pthread_create(&(tid[2]), NULL, &playThread, (void *)&q2);
+	err = pthread_create(&(tid[2]), NULL, &playThread, (void *)q);
 	if (err)
 	{}
 	CPU_ZERO(&(cpu[2]));
@@ -555,7 +523,7 @@ void* waitThread(void *arg)
 	if (err)
 	{}
 
-	err = pthread_create(&(tid[3]), NULL, &encodeThread, (void *)&q2);
+	err = pthread_create(&(tid[3]), NULL, &encodeThread, (void *)q);
 	if (err)
 	{}
 	CPU_ZERO(&(cpu[3]));
@@ -568,26 +536,26 @@ void* waitThread(void *arg)
 	if ((i=pthread_join(tid[1], NULL)))
 		printf("pthread_join error, tid[1], %d\n", i);
 
-	vq_drain(&(q2.vqcapture));
+	vq_drain(&(q->vqcapture));
 
 	if ((i=pthread_join(tid[2], NULL)))
 		printf("pthread_join error, tid[2], %d\n", i);
 
-	vq_drain(&(q2.vqencode));
+	vq_drain(&(q->vqencode));
 
 	if ((i=pthread_join(tid[3], NULL)))
 		printf("pthread_join error, tid[3], %d\n", i);
 
-	close_v4l2params(&(q2.p));
+	close_v4l2params(p);
 
 	retval_wait = 0;
 	pthread_exit((void*)&retval_wait);
 }
 
-void create_threads()
+void create_threads(queues *q)
 {
 	int err;
-	err = pthread_create(&(tid[0]), NULL, &waitThread, NULL);
+	err = pthread_create(&(tid[0]), NULL, &waitThread, (void *)q);
 	if (err)
 	{}
 }
@@ -599,7 +567,7 @@ void terminate_threads()
 		printf("pthread_join error, tid[0], %d\n", i);
 }
 
-static gboolean delete_event(GtkWidget *widget, GdkEvent *event, gpointer data)
+gboolean delete_event(GtkWidget *widget, GdkEvent *event, gpointer data)
 {
 //g_print ("delete event occurred\n");
 	queues *q = (queues *)data;
@@ -613,17 +581,17 @@ static gboolean delete_event(GtkWidget *widget, GdkEvent *event, gpointer data)
     return FALSE; // return FALSE to emit destroy signal
 }
 
-static void destroy(GtkWidget *widget, gpointer data)
+void destroy(GtkWidget *widget, gpointer data)
 {
 //printf("gtk_main_quit\n");
     gtk_main_quit();
 }
 
-static void realize_cb(GtkWidget *widget, gpointer data)
+void realize_cb(GtkWidget *widget, gpointer data)
 {
 }
 
-static gboolean draw_cb(GtkWidget *widget, cairo_t *cr, gpointer data)
+gboolean draw_cb(GtkWidget *widget, cairo_t *cr, gpointer data)
 {
 //printf("Draw %d\n", gettid());
 	g_mutex_lock(&pixbufmutex);
@@ -636,21 +604,20 @@ static gboolean draw_cb(GtkWidget *widget, cairo_t *cr, gpointer data)
 	return FALSE;
 }
 
-static gboolean delete_event2(GtkWidget *widget, GdkEvent *event, gpointer data)
+gboolean delete_event2(GtkWidget *widget, GdkEvent *event, gpointer data)
 {
 //g_print ("delete event occurred\n");
     return TRUE; // return FALSE to emit destroy signal
 }
 
-static void destroy2(GtkWidget *widget, gpointer data)
+void destroy2(GtkWidget *widget, gpointer data)
 {
 //printf("gtk_main_quit\n");
 }
 
-static void realize_cb2(GtkWidget *widget, gpointer data)
+void realize_cb2(GtkWidget *widget, gpointer data)
 {
 }
-
 
 void videodev_changed(GtkWidget *combo, gpointer data)
 {
@@ -685,24 +652,29 @@ void scale_changed(GtkWidget *combo, gpointer data)
 	g_free(scaleval);
 }
 
-static void button1_clicked(GtkWidget *button, gpointer data)
+void iomethod_changed(GtkWidget *combo, gpointer data)
 {
 	queues *q = (queues *)data;
 
-	gchar *device;
-	g_object_get((gpointer)videodev, "active-id", &device, NULL);
-//printf("%s\n", device);
-	strcpy(q->p.devicename, device);
-	g_free(device);
+	gchar *ioval;
+	g_object_get((gpointer)combo, "active-id", &ioval, NULL);
+	q->p.io = atoi(ioval);
+//printf("%d\n", q->p.io);
+	g_free(ioval);
+}
+
+void button1_clicked(GtkWidget *button, gpointer data)
+{
+	queues *q = (queues *)data;
 
 	gtk_widget_set_sensitive(glcheckbox, FALSE);
 	gtk_widget_set_sensitive(button1, FALSE);
 	gtk_widget_set_sensitive(button2, TRUE);
 	running = 1;
-	create_threads();
+	create_threads(q);
 }
 
-static void button2_clicked(GtkWidget *button, gpointer data)
+void button2_clicked(GtkWidget *button, gpointer data)
 {
 	running = 0;
 	terminate_threads();
@@ -711,10 +683,33 @@ static void button2_clicked(GtkWidget *button, gpointer data)
 	gtk_widget_set_sensitive(button2, FALSE);
 }
 
-static void usegl_toggled(GtkWidget *togglebutton, gpointer data)
+void usegl_toggled(GtkWidget *togglebutton, gpointer data)
 {
 	useGL = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(togglebutton));
 	//printf("toggle state %d\n", gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(dlyenable)));
+}
+
+void button3_clicked(GtkWidget *button, gpointer data)
+{
+	queues *q = (queues *)data;
+
+	GtkWidget *dialog;
+	GtkFileChooserAction action = GTK_FILE_CHOOSER_ACTION_SAVE;
+	GSList *chosenfile;
+
+	dialog = gtk_file_chooser_dialog_new("Save File", GTK_WINDOW(window), action, "Cancel", GTK_RESPONSE_CANCEL, "Save", GTK_RESPONSE_ACCEPT, NULL);
+	GtkFileChooser *chooser = GTK_FILE_CHOOSER(dialog);
+	gtk_file_chooser_set_select_multiple(chooser, FALSE);
+	if (gtk_dialog_run(GTK_DIALOG(dialog)) == GTK_RESPONSE_ACCEPT)
+	{
+		GSList *filelist = gtk_file_chooser_get_filenames(chooser);
+		for(chosenfile=filelist;chosenfile;chosenfile=chosenfile->next)
+		{
+			strcpy(q->p.filename, (char*)chosenfile->data);
+		}
+		g_slist_free(filelist);
+	}
+	gtk_widget_destroy(dialog);
 }
 
 void setup_default_icon(char *filename)
@@ -746,13 +741,13 @@ int main(int argc, char **argv)
 
 	/* This is called in all GTK applications. Arguments are parsed
 	* from the command line and are returned to the application. */
-	gtk_init (&argc, &argv);
+	gtk_init(&argc, &argv);
     
 	/* create a new window */
 	window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_CENTER);
 	/* Sets the border width of the window. */
-	gtk_container_set_border_width (GTK_CONTAINER (window), 2);
+	gtk_container_set_border_width(GTK_CONTAINER(window), 2);
 	//gtk_widget_set_size_request(window, 100, 100);
 	gtk_window_set_title(GTK_WINDOW(window), "Video Capture");
 	gtk_window_set_resizable(GTK_WINDOW(window), FALSE);
@@ -762,17 +757,17 @@ int main(int argc, char **argv)
 	* titlebar), we ask it to call the delete_event () function
 	* as defined above. The data passed to the callback
 	* function is NULL and is ignored in the callback function. */
-	g_signal_connect (window, "delete-event", G_CALLBACK (delete_event), (void *)&q2);
+	g_signal_connect(window, "delete-event", G_CALLBACK(delete_event), (void *)&q2);
     
 	/* Here we connect the "destroy" event to a signal handler.  
 	* This event occurs when we call gtk_widget_destroy() on the window,
 	* or if we return FALSE in the "delete-event" callback. */
-	g_signal_connect (window, "destroy", G_CALLBACK (destroy), NULL);
+	g_signal_connect(window, "destroy", G_CALLBACK(destroy), NULL);
 
-	g_signal_connect (window, "realize", G_CALLBACK (realize_cb), NULL);
+	g_signal_connect(window, "realize", G_CALLBACK(realize_cb), NULL);
 
 // vertical box
-	vcapturebox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 5);
+	vcapturebox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 5);
 	gtk_container_add(GTK_CONTAINER(window), vcapturebox);
 
 // vertical box
@@ -787,7 +782,7 @@ int main(int argc, char **argv)
 
 // drawing area
 	dwgarea = gtk_drawing_area_new();
-	gtk_widget_set_size_request (dwgarea, q2.p.playerwidth, q2.p.playerheight);
+	gtk_widget_set_size_request(dwgarea, q2.p.playerwidth, q2.p.playerheight);
 	//gtk_box_pack_start(GTK_BOX(imagebox), dwgarea, TRUE, TRUE, 0);
 	gtk_container_add(GTK_CONTAINER(imagebox), dwgarea);
 
@@ -795,6 +790,7 @@ int main(int argc, char **argv)
 	g_signal_connect(dwgarea, "draw", G_CALLBACK(draw_cb), NULL);
 	gtk_widget_set_app_paintable(dwgarea, TRUE);
 
+	pixbuf = NULL;
 	initPixbuf(q2.p.playerwidth, q2.p.playerheight);
 
 	gtk_widget_show_all(window);
@@ -804,7 +800,7 @@ int main(int argc, char **argv)
 	window2 = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	gtk_window_set_position(GTK_WINDOW(window2), GTK_WIN_POS_CENTER);
 	/* Sets the border width of the window. */
-	gtk_container_set_border_width (GTK_CONTAINER (window2), 2);
+	gtk_container_set_border_width(GTK_CONTAINER(window2), 2);
 	//gtk_widget_set_size_request(window, 100, 100);
 	gtk_window_set_title(GTK_WINDOW(window2), "Video Capture Control");
 	gtk_window_set_resizable(GTK_WINDOW(window2), FALSE);
@@ -814,14 +810,14 @@ int main(int argc, char **argv)
 	* titlebar), we ask it to call the delete_event () function
 	* as defined above. The data passed to the callback
 	* function is NULL and is ignored in the callback function. */
-	g_signal_connect (window2, "delete-event", G_CALLBACK(delete_event2), NULL);
+	g_signal_connect(window2, "delete-event", G_CALLBACK(delete_event2), NULL);
     
 	/* Here we connect the "destroy" event to a signal handler.  
 	* This event occurs when we call gtk_widget_destroy() on the window,
 	* or if we return FALSE in the "delete-event" callback. */
-	g_signal_connect (window2, "destroy", G_CALLBACK(destroy2), NULL);
+	g_signal_connect(window2, "destroy", G_CALLBACK(destroy2), NULL);
 
-	g_signal_connect (window2, "realize", G_CALLBACK(realize_cb2), NULL);
+	g_signal_connect(window2, "realize", G_CALLBACK(realize_cb2), NULL);
 
 // vertical box
 	controlbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 5);
@@ -840,6 +836,7 @@ int main(int argc, char **argv)
 	g_signal_connect(GTK_COMBO_BOX(videodev), "changed", G_CALLBACK(videodev_changed), (void *)&q2);
 	gtk_container_add(GTK_CONTAINER(buttonbox1), videodev);
 	gtk_button_box_set_child_non_homogeneous((GtkButtonBox *)buttonbox1, videodev, TRUE);
+	videodev_changed(videodev, (void *)&q2);
 
 // bit rate
 	bitrate = gtk_combo_box_text_new();
@@ -862,7 +859,7 @@ int main(int argc, char **argv)
 
 // button stop
 	button2 = gtk_button_new_with_label("Stop");
-	g_signal_connect(GTK_BUTTON(button2), "clicked", G_CALLBACK(button2_clicked), (void *)&q2);
+	g_signal_connect(GTK_BUTTON(button2), "clicked", G_CALLBACK(button2_clicked), NULL);
 	gtk_container_add(GTK_CONTAINER(buttonbox2), button2);
 	gtk_widget_set_sensitive(button2, FALSE);
 
@@ -874,10 +871,29 @@ int main(int argc, char **argv)
 	gtk_container_add(GTK_CONTAINER(buttonbox2), scale);
 	scale_changed(scale, (void *)&q2);
 
+// horizontal button box
+	buttonbox3 = gtk_button_box_new(GTK_ORIENTATION_HORIZONTAL);
+	gtk_button_box_set_layout((GtkButtonBox *)buttonbox3, GTK_BUTTONBOX_START);
+	gtk_container_add(GTK_CONTAINER(controlbox), buttonbox3);
+
+// button browse
+	button3 = gtk_button_new_with_label("Browse");
+	g_signal_connect(GTK_BUTTON(button3), "clicked", G_CALLBACK(button3_clicked), (void *)&q2);
+	gtk_container_add(GTK_CONTAINER(buttonbox3), button3);
+	strcpy(q2.p.filename, "/media/pi/Ilker/v4l2grab1.mp4");
+
 // horizontal box
 	hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 5);
 	gtk_container_add(GTK_CONTAINER(controlbox), hbox);
-    
+
+// io methods
+	iomethod = gtk_combo_box_text_new();
+	enumerate_io_methods(iomethod);
+	gtk_combo_box_set_active((gpointer)iomethod, 0);
+	g_signal_connect(GTK_COMBO_BOX(iomethod), "changed", G_CALLBACK(iomethod_changed), (void *)&q2);
+	gtk_container_add(GTK_CONTAINER(hbox), iomethod);
+	iomethod_changed(iomethod, (void *)&q2);
+
 // checkbox
 	useGL = TRUE;
 	glcheckbox = gtk_check_button_new_with_label("Use GL");

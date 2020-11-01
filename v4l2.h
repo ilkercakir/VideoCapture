@@ -46,6 +46,7 @@ typedef struct
 	int playerwidth, playerheight;
 	float scale;
 	int bitrate;
+	char filename[500];
 }v4l2params;
 
 struct buffer 
@@ -57,7 +58,8 @@ struct buffer
 int enumerate_video_devices(GtkWidget *combovideodev);
 void enumerate_bitrates(GtkWidget *combobitrate);
 void enumerate_scale_values(GtkWidget *comboscale);
-void init_v4l2params(v4l2params *p, io_method io);
+void enumerate_io_methods(GtkWidget *comboio);
+void init_v4l2params(v4l2params *p);
 void close_v4l2params(v4l2params *p);
 void errno_exit(const char* s);
 int xioctl(int fd, int request, void* argp);

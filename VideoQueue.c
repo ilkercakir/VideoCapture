@@ -129,7 +129,7 @@ void vq_drain(vqstatus *vqs)
 	{
 		pthread_mutex_unlock(&(vqs->vqmutex));
 		usleep(100000); // 0.1s
-//printf("vqLength=%d\n", vqLength);
+//printf("vqLength=%d\n", vqs->vqLength);
 		pthread_mutex_lock(&(vqs->vqmutex));
 	}
 	vqs->playerstatus = IDLE;

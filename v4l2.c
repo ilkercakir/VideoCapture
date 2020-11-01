@@ -81,9 +81,20 @@ void enumerate_scale_values(GtkWidget *comboscale)
 	gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(comboscale), s, "1.25");
 }
 
-void init_v4l2params(v4l2params *p, io_method io)
+void enumerate_io_methods(GtkWidget *comboio)
 {
-	p->io = io;
+	char s[10];
+
+	sprintf(s, "%d", IO_METHOD_READ);
+	gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(comboio), s, "READ");
+	sprintf(s, "%d", IO_METHOD_MMAP);
+	gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(comboio), s, "MMAP");
+	sprintf(s, "%d", IO_METHOD_USERPTR);
+	gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(comboio), s, "USERPTR");
+}
+
+void init_v4l2params(v4l2params *p)
+{
 	p->fd = -1;
 	p->buffers = NULL;
 	p->n_buffers = 0;
@@ -447,9 +458,9 @@ void mmapInit(v4l2params *p)
 
 	CLEAR (req);
 
-	req.count               = 4;
-	req.type                = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-	req.memory              = V4L2_MEMORY_MMAP;
+	req.count = 4;
+	req.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+	req.memory = V4L2_MEMORY_MMAP;
 
 	if (-1 == xioctl(p->fd, VIDIOC_REQBUFS, &req)) 
 	{
@@ -511,9 +522,9 @@ void userptrInit(unsigned int buffer_size, v4l2params *p)
 
 	CLEAR(req);
 
-	req.count               = 4;
-	req.type                = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-	req.memory              = V4L2_MEMORY_USERPTR;
+	req.count = 4;
+	req.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+	req.memory = V4L2_MEMORY_USERPTR;
 
 	if (-1 == xioctl(p->fd, VIDIOC_REQBUFS, &req))
 	{
