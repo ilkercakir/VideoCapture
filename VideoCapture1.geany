@@ -24,13 +24,13 @@ long_line_column=72
 
 [files]
 current_page=0
-FILE_NAME_0=23634;C;0;EUTF-8;1;1;0;%2Fhome%2Fpi%2FDesktop%2FC%2FV4L2%2Fv4l2grab1.c;0;4
-FILE_NAME_1=5267;C;0;EUTF-8;1;1;0;%2Fhome%2Fpi%2FDesktop%2FC%2FV4L2%2Fencode.c;0;4
-FILE_NAME_2=458;C;0;EUTF-8;1;1;0;%2Fhome%2Fpi%2FDesktop%2FC%2FV4L2%2Fencode.h;0;4
-FILE_NAME_3=27;C;0;EUTF-8;1;1;0;%2Fhome%2Fpi%2FDesktop%2FC%2FV4L2%2FYUYVYUV420gl.c;0;4
-FILE_NAME_4=707;C;0;EUTF-8;1;1;0;%2Fhome%2Fpi%2FDesktop%2FC%2FV4L2%2FYUYVYUV420gl.h;0;4
-FILE_NAME_5=15895;C;0;EUTF-8;1;1;0;%2Fhome%2Fpi%2FDesktop%2FC%2FV4L2%2Fv4l2.c;0;4
-FILE_NAME_6=870;C;0;EUTF-8;1;1;0;%2Fhome%2Fpi%2FDesktop%2FC%2FV4L2%2Fv4l2.h;0;4
+FILE_NAME_0=25647;C;0;EUTF-8;1;1;0;%2Fhome%2Fpi%2FDesktop%2FC%2FV4L2%2Fv4l2grab1.c;0;4
+FILE_NAME_1=621;C;0;EUTF-8;1;1;0;%2Fhome%2Fpi%2FDesktop%2FC%2FV4L2%2Fencode.c;0;4
+FILE_NAME_2=870;C;0;EUTF-8;1;1;0;%2Fhome%2Fpi%2FDesktop%2FC%2FV4L2%2Fv4l2.h;0;4
+FILE_NAME_3=458;C;0;EUTF-8;1;1;0;%2Fhome%2Fpi%2FDesktop%2FC%2FV4L2%2Fencode.h;0;4
+FILE_NAME_4=27;C;0;EUTF-8;1;1;0;%2Fhome%2Fpi%2FDesktop%2FC%2FV4L2%2FYUYVYUV420gl.c;0;4
+FILE_NAME_5=707;C;0;EUTF-8;1;1;0;%2Fhome%2Fpi%2FDesktop%2FC%2FV4L2%2FYUYVYUV420gl.h;0;4
+FILE_NAME_6=1239;C;0;EUTF-8;1;1;0;%2Fhome%2Fpi%2FDesktop%2FC%2FV4L2%2Fv4l2.c;0;4
 FILE_NAME_7=2524;C;0;EUTF-8;1;1;0;%2Fhome%2Fpi%2FDesktop%2FC%2FV4L2%2FVideoQueue.c;0;4
 FILE_NAME_8=257;C;0;EUTF-8;1;1;0;%2Fhome%2Fpi%2FDesktop%2FC%2FV4L2%2FVideoQueue.h;0;4
 
@@ -51,3 +51,8 @@ NF_03_WD=
 CFT_02_LB=Make
 CFT_02_CM=make -j4
 CFT_02_WD=
+
+[editor]
+line_wrapping=false
+line_break_column=72
+auto_continue_multiline=true
